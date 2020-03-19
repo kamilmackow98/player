@@ -33,7 +33,7 @@ const LeftPane = () => {
   });
 
   return (
-    <div className="left-pane">
+    <div className="left-pane" data-simplebar>
       <div className="left-pane__item">
         <div className="left-pane__content"></div>
       </div>
