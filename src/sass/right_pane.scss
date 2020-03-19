@@ -1,0 +1,17 @@
+.right-pane {
+  grid-area: right;
+
+  justify-content: center;
+  align-items: center;
+  display: flex;
+
+  height: 100%;
+  width: 100%;
+
+  border-left: 4px solid $secondaryTheme;
+
+  .right-pane__content {
+    height: 100%;
+    width: 100%;
+  }
+}

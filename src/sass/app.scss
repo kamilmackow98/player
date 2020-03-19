@@ -1,0 +1,22 @@
+@import "variables";
+@import "general";
+@import "playbar";
+@import "left_pane";
+@import "right_pane";
+
+.app {
+  background-color: $themeColor;
+  display: grid;
+  height: 100%;
+  width: 100%;
+
+  /* grid layout */
+  grid-template-columns: 0.75fr 1fr;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "left right"
+    "playbar playbar";
+}
+
+
+

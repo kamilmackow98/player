@@ -1,0 +1,149 @@
+$control-container: 40px;
+$controls-width: 3 * $control-container;
+
+/* whole playbar container */
+.playbar {
+  background-color: $secondaryTheme;
+  grid-area: playbar;
+  display: flex;
+  height: 40px;
+  width: 100%;
+
+  z-index: 10;
+
+  user-select: none;
+  font-size: 14px;
+}
+
+/* current time, progress and song time */
+.playbar__progress {
+  width: calc(100% - #{$controls-width});
+  height: 100%;
+
+  align-items: center;
+  text-align: center;
+  display: flex;
+
+  cursor: default;
+
+  .current-time,
+  .duration {
+    white-space: nowrap;
+    user-select: none;
+    padding: 0 20px;
+    width: auto;
+  }
+
+  .duration {
+    padding-right: 10px;
+  }
+
+  /* bar for entire song duration */
+  .progress-bar {
+    background-color: $themeColor;
+    border-radius: 1px;
+    height: 7px;
+    width: 100%;
+
+    display: flex;
+
+    &:hover {
+      .line {
+        box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
+        background-color: rgb(255, 255, 255);
+      }
+    }
+
+    /* fill or line */
+    .line {
+      box-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
+      background-color: rgb(100, 100, 100);
+      transition: all 200ms ease;
+      border-radius: 1px;
+      width: 69%;
+
+    }
+  }
+}
+
+/* repeat, shuffle and volume controls */
+.playbar__controls {
+  width: $controls-width;
+  user-select: none;
+  height: 100%;
+
+  background-color: $secondaryTheme;
+  color: rgb(100, 100, 100);
+  display: flex;
+
+  /* repeat, shuffle and volume containers */
+  .playbar__repeat,
+  .playbar__shuffle,
+  .playbar__volume {
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    display: flex;
+
+    box-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
+    transition: all 200ms ease;
+    width: $control-container;
+
+    &:hover {
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+      color: rgb(255, 255, 255);
+
+      .volume__wrap {
+        transform: translate3d(0, 0, 0);
+      }
+    }
+  }
+
+  /* volume line container */
+  .volume__wrap {
+    background-color: $secondaryTheme;
+    max-height: 70vh;
+    height: 200px;
+    width: 40px;
+
+    transform: translate3d(0, 110%, 0);
+    transition: all 250ms ease;
+    z-index: -1;
+
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+
+    justify-content: center;
+    align-items: center;
+    display: flex;
+
+    /* bar inside */
+    .bar {
+      background-color: $themeColor;
+      transition: all 0.25s ease;
+      height: 80%;
+      width: 25%;
+
+      display: flex;
+
+      &:hover {
+        .line {
+          box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
+          background-color: rgb(255, 255, 255);
+        }
+      }
+
+      /* fill or line */
+      .line {
+        box-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
+        background-color: rgb(100, 100, 100);
+        transition: all 200ms ease;
+        align-self: flex-end;
+        border-radius: 1px;
+        height: 75%;
+        width: 100%;
+      }
+    }
+  }
+}
