@@ -3,16 +3,19 @@ $controls-width: 3 * $control-container;
 
 /* whole playbar container */
 .playbar {
-  background-color: $secondaryTheme;
+  background-color: $secondary;
   grid-area: playbar;
   display: flex;
   height: 40px;
   width: 100%;
 
+  font-family: "Saira-SemiBold";
+  
+  color: $third;
   z-index: 10;
 
   user-select: none;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 /* current time, progress and song time */
@@ -40,7 +43,7 @@ $controls-width: 3 * $control-container;
 
   /* bar for entire song duration */
   .progress-bar {
-    background-color: $themeColor;
+    background-color: $primary;
     border-radius: 1px;
     height: 7px;
     width: 100%;
@@ -57,11 +60,10 @@ $controls-width: 3 * $control-container;
     /* fill or line */
     .line {
       box-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
-      background-color: rgb(100, 100, 100);
       transition: all 200ms ease;
+      background-color: $third;
       border-radius: 1px;
       width: 69%;
-
     }
   }
 }
@@ -72,8 +74,8 @@ $controls-width: 3 * $control-container;
   user-select: none;
   height: 100%;
 
-  background-color: $secondaryTheme;
-  color: rgb(100, 100, 100);
+  background-color: $secondary;
+  color: $third;
   display: flex;
 
   /* repeat, shuffle and volume containers */
@@ -101,7 +103,7 @@ $controls-width: 3 * $control-container;
 
   /* volume line container */
   .volume__wrap {
-    background-color: $secondaryTheme;
+    background-color: $secondary;
     max-height: 70vh;
     height: 200px;
     width: 40px;
@@ -120,7 +122,7 @@ $controls-width: 3 * $control-container;
 
     /* bar inside */
     .bar {
-      background-color: $themeColor;
+      background-color: $primary;
       transition: all 0.25s ease;
       height: 80%;
       width: 25%;
@@ -137,8 +139,8 @@ $controls-width: 3 * $control-container;
       /* fill or line */
       .line {
         box-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
-        background-color: rgb(100, 100, 100);
         transition: all 200ms ease;
+        background-color: $third;
         align-self: flex-end;
         border-radius: 1px;
         height: 75%;

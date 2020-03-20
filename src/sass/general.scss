@@ -1,12 +1,17 @@
 * {
   box-sizing: border-box;
-  font-family: "Saira";
 }
 
 /* general font */
 @font-face {
-  src: local("Saira"), url("../fonts/Saira-Regular.ttf") format("truetype");
-  font-family: "Saira";
+  src: local("Saira-Medium"), url("../fonts/Saira-Medium.ttf") format("truetype");
+  font-family: "Saira-Medium";
+}
+
+/* bold version */
+@font-face {
+  src: local("Saira-SemiBold"), url("../fonts/Saira-SemiBold.ttf") format("truetype");
+  font-family: "Saira-SemiBold";
 }
 
 /* material icons */
@@ -82,9 +87,12 @@ body {
 }
 
 #root {
+  font-family: "Saira-Medium";
   overflow: hidden;
+
   height: 100%;
   width: 100%;
+
   color: white;
   border: none;
 }

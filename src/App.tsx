@@ -1,16 +1,19 @@
-import Playbar from "./components/Playbar";
-import LeftPane from "./components/LeftPane";
 import RightPane from "./components/RightPane";
+import LeftPane from "./components/LeftPane";
+import Playbar from "./components/Playbar";
+import Navbar from "./components/Navbar";
 import React from "react";
 import "./sass/app.scss";
 
 export const App = () => {
   return (
     <div className="app">
-      <Playbar />
+      <Navbar />
 
       <LeftPane />
       <RightPane />
+
+      <Playbar />
     </div>
   );
 };

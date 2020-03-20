@@ -6,7 +6,7 @@
   align-items: center;
   display: grid;
 
-  background-color: $themeColor;
+  background-color: $primary;
   height: 100%;
   width: 100%;
 
@@ -57,7 +57,7 @@
   height: 125px;
   width: 100%;
 
-  border-top: 4px solid $secondaryTheme;
+  border-top: 3px solid $secondary;
 
   .play-pause {
     margin: 0 20px;
@@ -69,8 +69,8 @@
   .next {
     text-shadow: 0 0 5px rgba(255, 255, 255, 0);
     box-shadow: 0 0 5px rgba(255, 255, 255, 0);
-    border: 2px solid rgba(100, 100, 100, 1);
-    color: rgb(100, 100, 100);
+    border: 2px solid $third;
+    color: $third;
 
     transition: all 200ms ease;
     user-select: none;
