@@ -1,6 +1,13 @@
-import React from "react";
+import React, { MouseEvent } from "react";
 
 const Playbar = () => {
+
+  /* toggle class on controls when clicked */
+  function handleClick(e: MouseEvent) {
+    e.stopPropagation();
+    e.currentTarget.classList.toggle("selected");
+  }
+
   return (
     <div className="playbar">
       <div className="playbar__progress">
@@ -16,12 +23,22 @@ const Playbar = () => {
       {/* repeat, shuffle and volume controls */}
       <div className="playbar__controls">
         {/* repeat container */}
-        <span className="playbar__repeat">
+        <span
+          className="playbar__repeat"
+          onClick={e => {
+            handleClick(e);
+          }}
+        >
           <i className="material-icons md-24">repeat</i>
         </span>
 
         {/* shuffle container */}
-        <span className="playbar__shuffle">
+        <span
+          className="playbar__shuffle"
+          onClick={e => {
+            handleClick(e);
+          }}
+        >
           <i className="material-icons md-24">shuffle</i>
         </span>
 

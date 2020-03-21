@@ -1,46 +1,46 @@
 import React, { useState } from "react";
 
+/* array collection of navbar items */
+export let LinksCollection: Links[] = [
+  { id: "file", name: "File" },
+  { id: "artwork", name: "Album" },
+  { id: "lyrics", name: "Lyrics" },
+  { id: "playlists", name: "Playlists" },
+  { id: "theme", name: "Theme" }
+];
+
+/* types for array collection */
+export interface Links {
+  id: string;
+  name: string;
+}
+
 const Navbar = () => {
-  const [active, setActive] = useState(0);
+  const [activeIndex, setActive] = useState(0); /* initial index set to 0 - [File] */
 
-  function handleIndex() {
-    alert("es");
+  /* change current index on click */
+  function handleIndex(index: number) {
+    setActive(index);
   }
-
-  React.useEffect(() => {
-    let navbar__items = document.getElementsByClassName("navbar__item");
-
-    for (let i = 0; i < navbar__items.length; i++) {
-      navbar__items[i].addEventListener("click", () => {
-        setActive(i);
-        console.log(i);
-        
-      });
-    }
-  });
 
   return (
     <div className="navbar">
       <div className="navbar__container">
-        <div id="file" className="navbar__item" onClick={handleIndex}>
-          File
-        </div>
-        <div id="artwork" className="navbar__item">
-          Album
-        </div>
-        <div id="lyrics" className="navbar__item">
-          Lyrics
-        </div>
-        <div id="playlists" className="navbar__item">
-          Playlists
-        </div>
-        <div id="playlists" className="navbar__item">
-          Theme
-        </div>
+        {LinksCollection.map((link, i) => (
+          /* for each element in array returns a div item on navbar */
+          <div
+            className={activeIndex === i ? "navbar__item active" : "navbar__item" /* checks if (i === activeIndex) */}
+            onClick={() => {
+              handleIndex(i);
+            }}
+            id={link.id}
+            key={i}
+          >
+            {link.name}
+          </div>
+        ))}
       </div>
-      <div className="navbar__container">
-        <div className="playlist__name">Playlist name</div>
-      </div>
+      <div className="navbar__container">Playlist Name</div>
     </div>
   );
 };

@@ -10,7 +10,7 @@ $controls-width: 3 * $control-container;
   width: 100%;
 
   font-family: "Saira-SemiBold";
-  
+
   color: $third;
   z-index: 10;
 
@@ -87,11 +87,17 @@ $controls-width: 3 * $control-container;
     position: relative;
     display: flex;
 
-    box-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
+    /* when selected */
+    &.selected {
+      text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
+      color: rgb(255, 255, 255);
+    }
+
+    text-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
     transition: all 200ms ease;
     width: $control-container;
 
-    &:hover {
+    &:hover:not(.selected) {
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
       color: rgb(255, 255, 255);
 
