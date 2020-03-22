@@ -1,41 +1,87 @@
 import React from "react";
 
-const LeftPane = () => {
-  /* on component did mount */
+interface Content {
+  id: string;
+}
+
+interface Props {
+  index: number;
+}
+
+const LeftPane = (props: Props) => {
+  /* on component mount */
   React.useEffect(() => {
-    /* play & pause control */
-    let play_pause = document.getElementsByClassName("play-pause")[0]; 
+    let play_pause = document.getElementsByClassName("play-pause")[0]; // play & pause control
+    let pane_album = document.getElementById("album") as HTMLDivElement; // album cover
+    let album_width_init = pane_album.offsetWidth; // initial width value
 
-    play_pause.addEventListener("click", function(this: any) {
-      /* first child of control - material icons */
-      if (this.firstElementChild.textContent === "play_arrow") {
-        this.firstElementChild.textContent = "pause";
+    pane_album.style.height = `${album_width_init}px`; // initialize height = same as width
+
+    function ratio() {
+      let album_width = pane_album.offsetWidth; // gets album width
+      pane_album.style.height = `${album_width}px`; // sets height
+    }
+
+    function togglePlay() {
+      /* first child of control which is - material icon */
+      if (play_pause.firstElementChild!.textContent === "play_arrow") {
+        play_pause.firstElementChild!.textContent = "pause";
       } else {
-        this.firstElementChild.textContent = "play_arrow";
+        play_pause.firstElementChild!.textContent = "play_arrow";
       }
-    });
+    }
 
-    /* album cover aspect ratio */
-    let pane_content = document.getElementsByClassName("left-pane__content")[0] as HTMLDivElement;
-    let content_width_init = pane_content.offsetWidth;
+    window.addEventListener("resize", ratio);
+    play_pause.addEventListener("click", togglePlay);
 
-    /* initialize height */
-    pane_content.style.height = `${content_width_init}px`;
-
-    /* on resize keep aspect ratio */
-    window.addEventListener("resize", function() {
-      let content_width = pane_content.offsetWidth;
-
-      pane_content.style.height = `${content_width}px`;
-
-    })
-
+    /* on component unmount - event listeners cleanup */
+    return function cleanupListener() {
+      window.removeEventListener("resize", ratio);
+      play_pause.removeEventListener("click", togglePlay);
+    };
   });
 
+  const index = props.index;
+
   return (
-    <div className="left-pane" data-simplebar>
+    <div className="left-pane">
       <div className="left-pane__item">
-        <div className="left-pane__content"></div>
+        {ContentCollection.map((content, i) => (
+          <div key={i} id={content.id} className={i === index ? "show" : "hide"}>
+            {content.id === "file" && (
+              <div className="file__content">
+                <span className="drag-files">
+                  <i className="material-icons md-64">save_alt</i>
+                  <span>Drag .mp3 files</span>
+                </span>
+
+                <div className="open-files">
+                  <i className="material-icons md-48">file_copy</i>
+                  <div>Open files...</div>
+                </div>
+
+                <div className="add-files">
+                  <i className="material-icons md-48">add</i>
+                  <div>Add files...</div>
+                </div>
+              </div>
+            )}
+            {content.id === "lyrics" && (
+              <div className="lyrics__content">
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit. Autem veritatis, delectus tempora iure
+                aspernatur sit!
+                <br />
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ut eos reprehenderit iusto itaque cupiditate?
+                Repellat quas dolorum ipsa at nobis.
+                <br /> Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                <br /> Eligendi eos aliquam aspernatur sapiente molestiae, at laboriosam omnis ex totam provident fuga
+                porro praesentium, laudantium possimus neque beatae laborum quia assumenda.
+              </div>
+            )}
+            {content.id === "playlists" && <div>Playlists</div>}
+            {content.id === "theme" && <div>Theme</div>}
+          </div>
+        ))}
       </div>
 
       <div className="left-pane__item">
@@ -54,5 +100,13 @@ const LeftPane = () => {
     </div>
   );
 };
+
+export let ContentCollection: Content[] = [
+  { id: "file" },
+  { id: "album" },
+  { id: "lyrics" },
+  { id: "playlists" },
+  { id: "theme" }
+];
 
 export default LeftPane;

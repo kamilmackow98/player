@@ -1,27 +1,17 @@
-import React, { useState } from "react";
-
-/* array collection of navbar items */
-export let LinksCollection: Links[] = [
-  { id: "file", name: "File" },
-  { id: "artwork", name: "Album" },
-  { id: "lyrics", name: "Lyrics" },
-  { id: "playlists", name: "Playlists" },
-  { id: "theme", name: "Theme" }
-];
+import React from "react";
 
 /* types for array collection */
 export interface Links {
-  id: string;
   name: string;
 }
 
-const Navbar = () => {
-  const [activeIndex, setActive] = useState(0); /* initial index set to 0 - [File] */
+interface Props {
+  handleClick: any;
+  activeIndex: number;
+}
 
-  /* change current index on click */
-  function handleIndex(index: number) {
-    setActive(index);
-  }
+const Navbar = (props: Props) => {
+  const { handleClick, activeIndex } = props;
 
   return (
     <div className="navbar">
@@ -31,9 +21,8 @@ const Navbar = () => {
           <div
             className={activeIndex === i ? "navbar__item active" : "navbar__item" /* checks if (i === activeIndex) */}
             onClick={() => {
-              handleIndex(i);
+              handleClick(i);
             }}
-            id={link.id}
             key={i}
           >
             {link.name}
@@ -44,5 +33,14 @@ const Navbar = () => {
     </div>
   );
 };
+
+/* array collection of navbar items */
+export let LinksCollection: Links[] = [
+  { name: "File" },
+  { name: "Album" },
+  { name: "Lyrics" },
+  { name: "Playlists" },
+  { name: "Theme" }
+];
 
 export default Navbar;
