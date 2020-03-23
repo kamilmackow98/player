@@ -42,6 +42,8 @@
   height: 100%;
   width: 100%;
 
+  // color: $third; // possible to add to the theme later
+
   &.show {
     display: flex;
   }
@@ -71,10 +73,11 @@
     align-items: center;
     display: flex;
 
+    margin-bottom: 20px;
+    padding: 20px;
+
     min-width: 200px;
     width: 50%;
-    padding: 20px;
-    margin-bottom: 20px;
 
     border: 3px solid lighten($primary, 4%);
     transition: all 200ms ease;
@@ -121,6 +124,7 @@
   top: 0;
 }
 
+/* lyrics container */
 #lyrics {
   .lyrics__content {
     height: 100%;
@@ -128,14 +132,92 @@
 
     min-width: 300px;
 
+    justify-content: center;
     align-items: center;
     text-align: center;
     display: flex;
   }
 }
 
+/* playlists container */
 #playlists {
-  border: 1px solid yellow;
+  .playlists__content {
+    height: 100%;
+    width: 100%;
+
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    display: flex;
+
+    .new-playlist {
+      justify-content: center;
+      align-items: center;
+      display: flex;
+
+      cursor: pointer;
+
+      min-width: 250px;
+      width: 50%;
+
+      border: 3px solid lighten($primary, 4%);
+      margin-bottom: 20px;
+      padding: 20px;
+
+      &:hover {
+        border: 3px solid $secondary;
+      }
+
+      i {
+        cursor: pointer;
+      }
+
+      div {
+        white-space: nowrap;
+        margin: 0 10px;
+      }
+
+      input {
+        display: none;
+      }
+    }
+
+    .playlist__list {
+      text-align: center;
+      list-style: none;
+
+      min-width: 250px;
+      width: 50%;
+
+      padding: 0;
+
+      li {
+        border-top: 3px solid lighten($primary, 4%);
+        transition: all 200ms ease;
+
+        overflow-wrap: break-word;
+        padding: 20px;
+
+        &:last-child {
+          border-bottom: 3px solid lighten($primary, 4%);
+          margin-bottom: 0;
+
+          &:hover {
+            border-bottom: 3px solid $secondary;
+          }
+        }
+
+        &:hover {
+          border-top: 3px solid $secondary;
+          background-color: $secondary;
+
+          & + li {
+            border-top: 3px solid $secondary;
+          }
+        }
+      }
+    }
+  }
 }
 
 #theme {

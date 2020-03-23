@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MouseEvent, KeyboardEvent } from "react";
 
 interface Content {
   id: string;
@@ -41,6 +41,47 @@ const LeftPane = (props: Props) => {
     };
   });
 
+  const ulListRef = React.createRef<HTMLUListElement>(); // useRef<HTMLUListElement>(null)
+  const playlist_input = React.createRef<HTMLInputElement>();
+  const [playlistName, setPlaylistName] = React.useState("New Playlist");
+
+  let li = document.createElement("li");
+
+  /* on click [Create New Playlist] */
+  function new_playlist(e: MouseEvent) {
+    e.preventDefault();
+    let children = e.currentTarget.children as HTMLCollectionOf<HTMLElement>;
+    children[0].style["display"] = "none";
+    children[1].style["display"] = "none";
+    children[2].style["display"] = "initial";
+
+    ulListRef.current!.appendChild(li);
+    li.textContent = playlistName;
+  }
+
+  console.log("first log" + ulListRef);
+
+  /* fire on change */
+  function setName(name: string) {
+    // li.textContent = playlistName;
+    // setPlaylistName(name);
+    if(ulListRef.current && ulListRef.current.lastChild) {
+      ulListRef.current.lastChild.textContent = "1";
+    }
+    console.log(ulListRef);
+    
+  }
+
+  /* on key press and if key pressed === Enter */
+  function addPlaylist(e: KeyboardEvent) {
+    // console.log(playlistName);
+
+    if (e.key === "Enter" && playlist_input.current!.value.length > 0) {
+      li.textContent = playlistName.trim();
+      // console.log(li.textContent);
+    }
+  }
+
   const index = props.index;
 
   return (
@@ -78,8 +119,36 @@ const LeftPane = (props: Props) => {
                 porro praesentium, laudantium possimus neque beatae laborum quia assumenda.
               </div>
             )}
-            {content.id === "playlists" && <div>Playlists</div>}
-            {content.id === "theme" && <div>Theme</div>}
+            {content.id === "playlists" && (
+              <div className="playlists__content">
+                <div
+                  className="new-playlist"
+                  onClick={e => {
+                    new_playlist(e);
+                  }}
+                >
+                  <i className="material-icons md-48">add</i>
+                  <div>Create new playlist</div>
+                  <input
+                    ref={playlist_input}
+                    onKeyPress={event => {
+                      addPlaylist(event);
+                    }}
+                    onChange={event => {
+                      setName(event.target.value);
+                    }}
+                    type="text"
+                    placeholder="Playlist name"
+                  />
+                </div>
+                <ul className="playlist__list" ref={ulListRef}>
+                  <li>Blind Guardian [412]</li>
+                  <li>Audioslave [64]</li>
+                  <li>TOOL [87]</li>
+                </ul>
+              </div>
+            )}
+            {content.id === "theme" && <div className="theme__content">Theme</div>}
           </div>
         ))}
       </div>
