@@ -1,6 +1,3 @@
-$control-container: 40px;
-$controls-width: 3 * $control-container;
-
 /* whole playbar container */
 .playbar {
   background-color: $secondary;
@@ -20,8 +17,8 @@ $controls-width: 3 * $control-container;
 
 /* current time, progress and song time */
 .playbar__progress {
-  width: calc(100% - #{$controls-width});
   height: 100%;
+  width: 100%;
 
   align-items: center;
   text-align: center;
@@ -38,7 +35,11 @@ $controls-width: 3 * $control-container;
   }
 
   .duration {
-    padding-right: 10px;
+    padding-right: 8px;
+  }
+
+  .current-time {
+    padding-left: 10px;
   }
 
   /* bar for entire song duration */
@@ -73,29 +74,17 @@ $controls-width: 3 * $control-container;
   justify-content: center;
   align-items: center;
   display: flex;
-  // display: none;
-
-  // height: 125px;
-  width: $controls-width;
-
-
-  .play-pause {
-    // margin: 0 20px;
-  }
 
   /* controls - containers [not icons] */
   .previous,
   .play-pause,
   .next {
     text-shadow: 0 0 5px rgba(255, 255, 255, 0);
-    // box-shadow: 0 0 5px rgba(255, 255, 255, 0);
     border: 2px solid rgba(0, 0, 0, 0);
     color: $third;
 
-    border-radius: 50px;
-
-    width: $control-container;
     height: 100%;
+    width: 40px;
 
     transition: all 200ms ease;
     user-select: none;
@@ -104,14 +93,8 @@ $controls-width: 3 * $control-container;
     align-items: center;
     display: flex;
 
-    // border-radius: 50px;
-    // height: 50px;
-    // width: 50px;
-
     &:hover {
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-      // box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-      border: 2px solid rgba(255, 255, 255, 1);
       color: rgb(255, 255, 255);
     }
   }
@@ -119,7 +102,6 @@ $controls-width: 3 * $control-container;
 
 /* repeat, shuffle and volume controls */
 .playbar__right-controls {
-  width: $controls-width;
   user-select: none;
   height: 100%;
 
@@ -136,15 +118,15 @@ $controls-width: 3 * $control-container;
     position: relative;
     display: flex;
 
+    text-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
+    transition: all 200ms ease;
+    width: 40px;
+
     /* when selected */
     &.selected {
       text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
       color: rgb(255, 255, 255);
     }
-
-    text-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
-    transition: all 200ms ease;
-    width: $control-container;
 
     &:hover:not(.selected) {
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);

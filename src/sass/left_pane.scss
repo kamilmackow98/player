@@ -19,10 +19,13 @@
     align-items: center;
     display: flex;
 
+    position: relative;
     user-select: none;
 
     height: 100%;
     width: 100%;
+
+    z-index: 10;
 
     &:first-child {
       padding: 20px;
@@ -80,7 +83,7 @@
     width: 50%;
 
     border: 3px solid lighten($primary, 4%);
-    transition: all 200ms ease;
+    transition: border 200ms ease;
 
     &:hover {
       border: 3px solid $secondary;
@@ -110,8 +113,9 @@
 
 /* album cover */
 #album {
-  border: 4px solid lighten($color: $primary, $amount: 4%);
-  box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.25);
+  // border: 4px solid lighten($color: $primary, $amount: 4%);
+  box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.5);
+  position: relative;
 
   background-image: url("../images/revelations.jpg");
   background-color: lighten($primary, 4%);
@@ -119,9 +123,39 @@
   background-position: center;
   background-size: cover;
 
+  height: auto;
   width: 80%;
-  left: 0;
-  top: 0;
+
+  .reflection {
+    background-position: center bottom;
+    background-image: inherit;
+    background-size: cover;
+
+    position: absolute;
+
+    top: calc(100% + 0px);
+    transform: scaleY(-1);
+    opacity: 0.5;
+
+    width: 100%;
+    height: 12%;
+    z-index: -1;
+
+    &::before {
+      background: linear-gradient(rgba(0, 0, 0, 0), $primary 80%);
+      transform: scaleY(-1);
+      position: absolute;
+      content: "";
+
+      bottom: 0;
+      left: 0;
+
+      height: calc(100% + 5px);
+      width: 100.2%;
+    }
+  }
+
+  
 }
 
 /* lyrics container */
@@ -141,8 +175,6 @@
 
 /* playlists container */
 #playlists {
-
-
   .playlists__content {
     height: 100%;
     width: 100%;
@@ -162,8 +194,8 @@
       height: 100px;
       width: 50%;
 
+      transition: border 200ms ease;
       border: 3px solid lighten($primary, 4%);
-      margin-bottom: 20px;
       padding: 20px;
     }
 
@@ -190,7 +222,6 @@
       input {
         display: none;
       }
-
     }
 
     .playlist__input-container {
@@ -219,7 +250,7 @@
           color: $third;
         }
       }
-      
+
       &.hide {
         display: none;
       }
@@ -232,7 +263,12 @@
       min-width: 250px;
       width: 50%;
 
+      margin-top: 40px;
       padding: 0;
+
+      &.hide {
+        display: none;
+      }
 
       li {
         border-top: 3px solid lighten($primary, 4%);

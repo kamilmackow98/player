@@ -11,13 +11,13 @@ const Playbar = () => {
     <div className="playbar">
       <div className="playbar__left-controls">
         <span className="previous">
-          <i className="material-icons md-24">skip_previous</i>
+          <i className="material-icons md-24">fast_rewind</i>
         </span>
         <span className="play-pause">
           <i className="material-icons md-24">play_arrow</i>
         </span>
         <span className="next">
-          <i className="material-icons md-24">skip_next</i>
+          <i className="material-icons md-24">fast_forward</i>
         </span>
       </div>
       <div className="playbar__progress">

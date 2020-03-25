@@ -9,42 +9,7 @@ interface Props {
 }
 
 const LeftPane = (props: Props) => {
-  /* on component mount */
-  React.useEffect(() => {
-    let play_pause = document.getElementsByClassName("play-pause")[0]; // play & pause control
-    let pane_album = document.getElementById("album") as HTMLDivElement; // album cover
-    let album_width_init = pane_album.offsetWidth; // initial width value
-
-    pane_album.style.height = `${album_width_init}px`; // initialize height = same as width
-
-    function ratio() {
-      let album_width = pane_album.offsetWidth; // gets album width
-      pane_album.style.height = `${album_width}px`; // sets height
-    }
-
-    function togglePlay() {
-      /* first child of control which is - material icon */
-      if (play_pause.firstElementChild!.textContent === "play_arrow") {
-        play_pause.firstElementChild!.textContent = "pause";
-      } else {
-        play_pause.firstElementChild!.textContent = "play_arrow";
-      }
-    }
-
-    window.addEventListener("resize", ratio);
-    play_pause.addEventListener("click", togglePlay);
-
-    /* on component unmount - event listeners cleanup */
-    return function cleanupListener() {
-      window.removeEventListener("resize", ratio);
-      play_pause.removeEventListener("click", togglePlay);
-    };
-  });
-
-  // or React.createRef<HTMLUListElement>();
-  // const [playlistName, setPlaylistName] = React.useState("-");
-
-  const playlist_btn = React.useRef<HTMLDivElement>(null); //
+  const playlist_btn = React.useRef<HTMLDivElement>(null); // or React.createRef<HTMLUListElement>();
 
   const input_container = React.useRef<HTMLDivElement>(null); // div with input
   const playlist_input = React.useRef<HTMLInputElement>(null); // input [new playlist]
@@ -60,30 +25,32 @@ const LeftPane = (props: Props) => {
     playlist_input.current!.focus(); // auto focus after click
   }
 
+  function reset_input() {
+    playlist_btn.current!.classList.remove("hide"); // show btn
+    input_container.current!.classList.add("hide"); // hide input
+
+    playlist_input.current!.setAttribute("disabled", ""); // disable input
+    playlist_input.current!.value = ""; // reset value in input
+  }
+
   /* on key press and if key pressed === Enter */
   function addPlaylist(e: KeyboardEvent) {
     if (e.key === "Enter" && playlist_input.current!.value.length > 0 && playlist_input.current!.value.trim().length) {
       /* if correct value - accept the playlist and create new one */
 
-      const newLi = document.createElement("li");
-      newLi.textContent = playlist_input.current!.value.trim();
+      const newLi = document.createElement("li"); // create new <li> element
+      newLi.textContent = playlist_input.current!.value.trim(); // <li> content = value from input
 
-      ulListRef.current!.appendChild(newLi);
+      ulListRef.current!.appendChild(newLi); // add created <li> to the <ul>
 
-      playlist_btn.current!.classList.remove("hide");
-      input_container.current!.classList.add("hide");
+      if (ulListRef.current!.classList.contains("hide")) {
+        ulListRef.current!.classList.remove("hide"); // shows <ul> element if contains .hide class
+      }
 
-      playlist_input.current!.setAttribute("disabled", "");
-
-      playlist_input.current!.value = "";
+      reset_input();
     } else if (e.key === "Enter") {
       /* otherwise reset entry */
-
-      playlist_btn.current!.classList.remove("hide");
-      input_container.current!.classList.add("hide");
-
-      playlist_input.current!.value = "";
-      playlist_input.current!.setAttribute("disabled", "");
+      reset_input();
     }
   }
 
@@ -111,6 +78,9 @@ const LeftPane = (props: Props) => {
                   <div>Add files...</div>
                 </div>
               </div>
+            )}
+            {content.id === "album" && (
+              <span className="reflection"></span>
             )}
             {content.id === "lyrics" && (
               <div className="lyrics__content">
@@ -151,7 +121,7 @@ const LeftPane = (props: Props) => {
                   />
                 </div>
 
-                <ul className="playlist__ul" ref={ulListRef}></ul>
+                <ul className="playlist__ul hide" ref={ulListRef}></ul>
               </div>
             )}
             {content.id === "theme" && <div className="theme__content">Theme</div>}
