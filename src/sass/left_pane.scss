@@ -1,7 +1,7 @@
 .left-pane {
   grid-area: left;
 
-  grid-template-rows: 1fr auto;
+  grid-template-rows: 1fr;
   justify-items: center;
   align-items: center;
   display: grid;
@@ -76,7 +76,7 @@
     margin-bottom: 20px;
     padding: 20px;
 
-    min-width: 200px;
+    min-width: 250px;
     width: 50%;
 
     border: 3px solid lighten($primary, 4%);
@@ -141,6 +141,8 @@
 
 /* playlists container */
 #playlists {
+
+
   .playlists__content {
     height: 100%;
     width: 100%;
@@ -150,19 +152,27 @@
     align-items: center;
     display: flex;
 
-    .new-playlist {
+    .playlist__btn,
+    .playlist__input-container {
       justify-content: center;
       align-items: center;
       display: flex;
 
-      cursor: pointer;
-
       min-width: 250px;
+      height: 100px;
       width: 50%;
 
       border: 3px solid lighten($primary, 4%);
       margin-bottom: 20px;
       padding: 20px;
+    }
+
+    .playlist__btn {
+      cursor: pointer;
+
+      &.hide {
+        display: none;
+      }
 
       &:hover {
         border: 3px solid $secondary;
@@ -180,9 +190,42 @@
       input {
         display: none;
       }
+
     }
 
-    .playlist__list {
+    .playlist__input-container {
+      flex-direction: column;
+      padding: 0;
+
+      label {
+        margin-bottom: 10px;
+      }
+
+      input {
+        background-color: $primary;
+        border: none;
+        outline: 0;
+        color: white;
+        // border-bottom: 3px solid lighten($primary, 4%);
+        padding: 2px;
+        font-family: "Saira-SemiBold";
+        text-align: center;
+        font-size: 16px;
+
+        height: 100%;
+        width: 100%;
+
+        &::placeholder {
+          color: $third;
+        }
+      }
+      
+      &.hide {
+        display: none;
+      }
+    }
+
+    .playlist__ul {
       text-align: center;
       list-style: none;
 
@@ -222,48 +265,4 @@
 
 #theme {
   border: 1px solid green;
-}
-
-/* wrap - previous, play, pause, next controls */
-.left-pane__controls {
-  justify-content: center;
-  align-items: center;
-  display: flex;
-
-  height: 125px;
-  width: 100%;
-
-  border-top: 3px solid $secondary;
-
-  .play-pause {
-    margin: 0 20px;
-  }
-
-  /* controls - containers [not icons] */
-  .previous,
-  .play-pause,
-  .next {
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0);
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0);
-    border: 2px solid $third;
-    color: $third;
-
-    transition: all 200ms ease;
-    user-select: none;
-
-    justify-content: center;
-    align-items: center;
-    display: flex;
-
-    border-radius: 50px;
-    height: 50px;
-    width: 50px;
-
-    &:hover {
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-      box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-      border: 2px solid rgba(255, 255, 255, 1);
-      color: rgb(255, 255, 255);
-    }
-  }
 }

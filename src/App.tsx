@@ -10,7 +10,7 @@ import "./sass/app.scss";
  */
 
 export const App = () => {
-  const [activeIndex, setIndex] = React.useState(3); /* initial index set to 0 - [File] */
+  const [activeIndex, setIndex] = React.useState(0); /* initial index set to 0 - [File] */
 
   /* change current index on click */
   const handleIndex = (index: any) => {

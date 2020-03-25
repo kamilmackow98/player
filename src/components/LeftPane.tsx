@@ -41,44 +41,49 @@ const LeftPane = (props: Props) => {
     };
   });
 
-  const ulListRef = React.createRef<HTMLUListElement>(); // useRef<HTMLUListElement>(null)
-  const playlist_input = React.createRef<HTMLInputElement>();
-  const [playlistName, setPlaylistName] = React.useState("New Playlist");
+  // or React.createRef<HTMLUListElement>();
+  // const [playlistName, setPlaylistName] = React.useState("-");
 
-  let li = document.createElement("li");
+  const playlist_btn = React.useRef<HTMLDivElement>(null); //
+
+  const input_container = React.useRef<HTMLDivElement>(null); // div with input
+  const playlist_input = React.useRef<HTMLInputElement>(null); // input [new playlist]
+
+  const ulListRef = React.createRef<HTMLUListElement>(); // ul list element
 
   /* on click [Create New Playlist] */
   function new_playlist(e: MouseEvent) {
-    e.preventDefault();
-    let children = e.currentTarget.children as HTMLCollectionOf<HTMLElement>;
-    children[0].style["display"] = "none";
-    children[1].style["display"] = "none";
-    children[2].style["display"] = "initial";
+    playlist_btn.current!.classList.add("hide"); // hide btn
+    input_container.current!.classList.remove("hide"); // show input
 
-    ulListRef.current!.appendChild(li);
-    li.textContent = playlistName;
-  }
-
-  console.log("first log" + ulListRef);
-
-  /* fire on change */
-  function setName(name: string) {
-    // li.textContent = playlistName;
-    // setPlaylistName(name);
-    if(ulListRef.current && ulListRef.current.lastChild) {
-      ulListRef.current.lastChild.textContent = "1";
-    }
-    console.log(ulListRef);
-    
+    playlist_input.current!.removeAttribute("disabled"); // make accessible
+    playlist_input.current!.focus(); // auto focus after click
   }
 
   /* on key press and if key pressed === Enter */
   function addPlaylist(e: KeyboardEvent) {
-    // console.log(playlistName);
+    if (e.key === "Enter" && playlist_input.current!.value.length > 0 && playlist_input.current!.value.trim().length) {
+      /* if correct value - accept the playlist and create new one */
 
-    if (e.key === "Enter" && playlist_input.current!.value.length > 0) {
-      li.textContent = playlistName.trim();
-      // console.log(li.textContent);
+      const newLi = document.createElement("li");
+      newLi.textContent = playlist_input.current!.value.trim();
+
+      ulListRef.current!.appendChild(newLi);
+
+      playlist_btn.current!.classList.remove("hide");
+      input_container.current!.classList.add("hide");
+
+      playlist_input.current!.setAttribute("disabled", "");
+
+      playlist_input.current!.value = "";
+    } else if (e.key === "Enter") {
+      /* otherwise reset entry */
+
+      playlist_btn.current!.classList.remove("hide");
+      input_container.current!.classList.add("hide");
+
+      playlist_input.current!.value = "";
+      playlist_input.current!.setAttribute("disabled", "");
     }
   }
 
@@ -122,49 +127,36 @@ const LeftPane = (props: Props) => {
             {content.id === "playlists" && (
               <div className="playlists__content">
                 <div
-                  className="new-playlist"
+                  ref={playlist_btn}
+                  className="playlist__btn"
                   onClick={e => {
                     new_playlist(e);
                   }}
                 >
                   <i className="material-icons md-48">add</i>
                   <div>Create new playlist</div>
+                </div>
+
+                <div className="playlist__input-container hide" ref={input_container}>
                   <input
+                    disabled
+                    maxLength={40}
+                    id="new-input"
                     ref={playlist_input}
                     onKeyPress={event => {
                       addPlaylist(event);
-                    }}
-                    onChange={event => {
-                      setName(event.target.value);
                     }}
                     type="text"
                     placeholder="Playlist name"
                   />
                 </div>
-                <ul className="playlist__list" ref={ulListRef}>
-                  <li>Blind Guardian [412]</li>
-                  <li>Audioslave [64]</li>
-                  <li>TOOL [87]</li>
-                </ul>
+
+                <ul className="playlist__ul" ref={ulListRef}></ul>
               </div>
             )}
             {content.id === "theme" && <div className="theme__content">Theme</div>}
           </div>
         ))}
-      </div>
-
-      <div className="left-pane__item">
-        <div className="left-pane__controls">
-          <span className="previous">
-            <i className="material-icons md-36">skip_previous</i>
-          </span>
-          <span className="play-pause">
-            <i className="material-icons md-36">play_arrow</i>
-          </span>
-          <span className="next">
-            <i className="material-icons md-36">skip_next</i>
-          </span>
-        </div>
       </div>
     </div>
   );

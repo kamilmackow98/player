@@ -1,7 +1,6 @@
 import React, { MouseEvent } from "react";
 
 const Playbar = () => {
-
   /* toggle class on controls when clicked */
   function handleClick(e: MouseEvent) {
     e.stopPropagation();
@@ -10,6 +9,17 @@ const Playbar = () => {
 
   return (
     <div className="playbar">
+      <div className="playbar__left-controls">
+        <span className="previous">
+          <i className="material-icons md-24">skip_previous</i>
+        </span>
+        <span className="play-pause">
+          <i className="material-icons md-24">play_arrow</i>
+        </span>
+        <span className="next">
+          <i className="material-icons md-24">skip_next</i>
+        </span>
+      </div>
       <div className="playbar__progress">
         <span className="current-time">1 : 06</span>
 
@@ -21,7 +31,7 @@ const Playbar = () => {
       </div>
 
       {/* repeat, shuffle and volume controls */}
-      <div className="playbar__controls">
+      <div className="playbar__right-controls">
         {/* repeat container */}
         <span
           className="playbar__repeat"

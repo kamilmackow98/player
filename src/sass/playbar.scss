@@ -68,8 +68,57 @@ $controls-width: 3 * $control-container;
   }
 }
 
+/* wrap - previous, play, pause, next controls */
+.playbar__left-controls {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  // display: none;
+
+  // height: 125px;
+  width: $controls-width;
+
+
+  .play-pause {
+    // margin: 0 20px;
+  }
+
+  /* controls - containers [not icons] */
+  .previous,
+  .play-pause,
+  .next {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0);
+    // box-shadow: 0 0 5px rgba(255, 255, 255, 0);
+    border: 2px solid rgba(0, 0, 0, 0);
+    color: $third;
+
+    border-radius: 50px;
+
+    width: $control-container;
+    height: 100%;
+
+    transition: all 200ms ease;
+    user-select: none;
+
+    justify-content: center;
+    align-items: center;
+    display: flex;
+
+    // border-radius: 50px;
+    // height: 50px;
+    // width: 50px;
+
+    &:hover {
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+      // box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+      border: 2px solid rgba(255, 255, 255, 1);
+      color: rgb(255, 255, 255);
+    }
+  }
+}
+
 /* repeat, shuffle and volume controls */
-.playbar__controls {
+.playbar__right-controls {
   width: $controls-width;
   user-select: none;
   height: 100%;
