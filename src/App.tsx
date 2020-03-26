@@ -2,7 +2,7 @@ import RightPane from "./components/RightPane";
 import LeftPane from "./components/LeftPane";
 import Playbar from "./components/Playbar";
 import Navbar from "./components/Navbar";
-import React, { MouseEvent } from "react";
+import React, { MouseEvent, ChangeEvent } from "react";
 import jsmediatags from "jsmediatags";
 import "./sass/app.scss";
 
@@ -65,18 +65,44 @@ export const App = () => {
     }
   }
 
-  function openFiles() {
+  /* input on change [openFiles] */
+  function openFiles(event: ChangeEvent) {
+    let target = event.currentTarget as HTMLInputElement;
+    let audioEl = document.getElementById("myAudio") as HTMLAudioElement;
+    // let firstFile = e.currentTarget.files[0];
+    let firstFile = target.files![0];
+    let reader = new FileReader();
+
+
+    reader.onload = function(e) {
+    console.log(reader.result);
+      
+      // console.log(e.target!.result);
+
+      audioEl!.setAttribute("src", e.target!.result as string);
+      audioEl!.play();
+    }
+
+    reader.readAsDataURL(firstFile);
+
+    /*
     if (openInput_ref.current) {
       let files = openInput_ref.current.files;
 
       if (files) {
+        for (let j = 0; j < files.length; j++) {
+          console.log(files[j]);
+
+          let filesList = document.getElementsByClassName("audioFilesList")[0];
+          const audioFile = document.createElement("audio");
+
+          filesList.appendChild(audioFile);
+        }
+
         for (let i = 0; i < files.length; i++) {
           jsmediatags.read(files[i], {
             onSuccess: function(tag) {
-              alert(tag);
-
-
-
+              console.log(tag);
             },
             onError: function(error) {
               alert(error);
@@ -85,6 +111,7 @@ export const App = () => {
         }
       }
     }
+    */
   }
 
   return (
@@ -93,7 +120,7 @@ export const App = () => {
 
       <input
         accept="audio/*"
-        onChange={openFiles}
+        onChange={e => openFiles(e)}
         className="openFiles-input"
         type="file"
         multiple
