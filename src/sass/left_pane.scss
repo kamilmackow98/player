@@ -114,10 +114,10 @@
 /* album cover */
 #album {
   // border: 4px solid lighten($color: $primary, $amount: 4%);
-  box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 5px 2px rgba(0, 0, 0, 0.25);
   position: relative;
 
-  background-image: url("../images/revelations.jpg");
+  background-image: url("../images/1.jpg");
   background-color: lighten($primary, 4%);
   background-repeat: no-repeat;
   background-position: center;
@@ -129,33 +129,55 @@
   .reflection {
     background-position: center bottom;
     background-image: inherit;
-    background-size: cover;
+    background-size: 0;
 
-    position: absolute;
-
-    top: calc(100% + 0px);
     transform: scaleY(-1);
-    opacity: 0.5;
+    position: absolute;
+    top: 100%;
+    left: 0;
 
     width: 100%;
-    height: 12%;
-    z-index: -1;
+    height: 15%;
 
-    &::before {
+    .reflection__img {
+      background-position: center bottom;
+      background-image: inherit;
+      background-size: cover;
+      opacity: 0.5;
+
+      position: absolute;
+      left: 0;
+      top: 0;
+
+      width: 100.1%;
+      height: 100%;
+    }
+
+    .reflection__shadow {
+      background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+      transform: scaleY(-1);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+
+      width: 100.1%;
+      height: 50%;
+    }
+
+    &::after {
       background: linear-gradient(rgba(0, 0, 0, 0), $primary 80%);
       transform: scaleY(-1);
       position: absolute;
       content: "";
 
-      bottom: 0;
-      left: 0;
-
       height: calc(100% + 5px);
       width: 100.2%;
+
+      z-index: 1;
+      bottom: 0;
+      left: 0;
     }
   }
-
-  
 }
 
 /* lyrics container */

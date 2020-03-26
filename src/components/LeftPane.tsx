@@ -5,6 +5,7 @@ interface Content {
 }
 
 interface Props {
+  handleInputs: Function;
   index: number;
 }
 
@@ -54,7 +55,7 @@ const LeftPane = (props: Props) => {
     }
   }
 
-  const index = props.index;
+  const { index, handleInputs } = props;
 
   return (
     <div className="left-pane">
@@ -68,19 +69,32 @@ const LeftPane = (props: Props) => {
                   <span>Drag .mp3 files</span>
                 </span>
 
-                <div className="open-files">
+                <div
+                  className="open-files"
+                  onClick={(e) => {
+                    handleInputs(e);
+                  }}
+                >
                   <i className="material-icons md-48">file_copy</i>
                   <div>Open files...</div>
                 </div>
 
-                <div className="add-files">
+                <div
+                  className="add-files"
+                  onClick={(e) => {
+                    handleInputs(e);
+                  }}
+                >
                   <i className="material-icons md-48">add</i>
                   <div>Add files...</div>
                 </div>
               </div>
             )}
             {content.id === "album" && (
-              <span className="reflection"></span>
+              <div className="reflection">
+                <span className="reflection__img"></span>
+                <span className="reflection__shadow"></span>
+              </div>
             )}
             {content.id === "lyrics" && (
               <div className="lyrics__content">
