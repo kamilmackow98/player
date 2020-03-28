@@ -1,21 +1,68 @@
 .right-pane {
   grid-area: right;
 
-  justify-content: center;
-  align-items: center;
-  display: flex;
-
   height: 100%;
   width: 100%;
 
   border-left: 3px solid $secondary;
+  overflow: auto;
 
   .right-pane__content {
+    justify-items: center;
+    align-items: center;
+    // display: grid;
+
     height: 100%;
     width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
+
+    user-select: none;
+
+    /* <ul> element */
+    .audioFilesList {
+      padding: 0;
+      margin: 0;
+      list-style-type: none;
+      padding: 20px;
+      font-family: "Saira-Regular";
+      font-size: 14px;
+
+      li {
+        padding: 1px 10px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        white-space: nowrap;
+
+        &.selectedLi {
+          background-color: lighten($primary, 4%);
+        }
+
+        &:hover {
+          background-color: lighten($primary, 4%);
+        }
+
+        .track-number {
+          width: 40px;
+          // margin-right: 10px;
+          margin-right: auto;
+          text-align: left;
+        }
+
+        .song-title {
+          width: 100%;
+          padding: 0 5px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .song-duration {
+          width: 75px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          text-align: right;
+        }
+      }
+    }
   }
 }

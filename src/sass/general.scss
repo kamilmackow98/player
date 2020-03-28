@@ -8,6 +8,12 @@
   font-family: "Saira-Medium";
 }
 
+/* regular font */
+@font-face {
+  src: local("Saira-Regular"), url("../fonts/Saira-Regular.ttf") format("truetype");
+  font-family: "Saira-Regular";
+}
+
 /* bold version */
 @font-face {
   src: local("Saira-SemiBold"), url("../fonts/Saira-SemiBold.ttf") format("truetype");

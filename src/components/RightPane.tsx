@@ -4,8 +4,9 @@ const RightPane = () => {
   return (
     <div className="right-pane">
       <div className="right-pane__content">
-        <ul className="audioFilesList"></ul>
-        <audio controls id="myAudio"></audio>
+        <ul className="audioFilesList">
+          
+        </ul>
       </div>
     </div>
   );

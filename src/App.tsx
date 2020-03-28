@@ -9,6 +9,7 @@ import "./sass/app.scss";
 /**
  * TODO : add color text + icons in panes as the variable theme ($third)
  * TODO : add checkbox/button to toggle album reflection ON/OFF
+ * TODO : check file types + setIndex(1); // set index on [Album] tab when opened files
  */
 
 export const App = () => {
@@ -65,53 +66,74 @@ export const App = () => {
     }
   }
 
-  /* input on change [openFiles] */
+  let objectUrl: string; // variable to store url objects
+
+  /* fire on change when user wants to [openFiles] */
   function openFiles(event: ChangeEvent) {
-    let target = event.currentTarget as HTMLInputElement;
-    let audioEl = document.getElementById("myAudio") as HTMLAudioElement;
-    // let firstFile = e.currentTarget.files[0];
-    let firstFile = target.files![0];
-    let reader = new FileReader();
+    let fileList = document.getElementsByClassName("audioFilesList")[0]; // ul list
+    let target = event.currentTarget as HTMLInputElement; // current input [openFiles]
+    let audioFiles = target.files; // files from the input
 
+    /* if <ul> has already files from previous selection or some magically appear */
+    if (fileList.hasChildNodes()) {
+      for (let i = 0; i < fileList.children.length; i++) {
+        let oldAudioFiles = fileList.children[i].children[0] as HTMLAudioElement; // each <audio> element in each <li> inside <ul>
+        URL.revokeObjectURL(oldAudioFiles.src); // release previous unused URL objects
+      }
 
-    reader.onload = function(e) {
-    console.log(reader.result);
-      
-      // console.log(e.target!.result);
-
-      audioEl!.setAttribute("src", e.target!.result as string);
-      audioEl!.play();
-    }
-
-    reader.readAsDataURL(firstFile);
-
-    /*
-    if (openInput_ref.current) {
-      let files = openInput_ref.current.files;
-
-      if (files) {
-        for (let j = 0; j < files.length; j++) {
-          console.log(files[j]);
-
-          let filesList = document.getElementsByClassName("audioFilesList")[0];
-          const audioFile = document.createElement("audio");
-
-          filesList.appendChild(audioFile);
-        }
-
-        for (let i = 0; i < files.length; i++) {
-          jsmediatags.read(files[i], {
-            onSuccess: function(tag) {
-              console.log(tag);
-            },
-            onError: function(error) {
-              alert(error);
-            }
-          });
-        }
+      /* removes child elements of the <ul> until there is no more <li> */
+      while (fileList.firstChild) {
+        fileList.removeChild(fileList.firstChild); // or simply fileList.firstChild.remove()
       }
     }
-    */
+
+    /* checks if any file was selected or not */
+    if (!audioFiles || !audioFiles.length) {
+      fileList.innerHTML = "No files selected";
+    } else {
+      // console.table(audioFiles);
+      for (let i = 0; i < audioFiles.length; i++) {
+        /* for each audio file */
+        const audioEl = document.createElement("audio"); // create <audio> element
+        const liEl = document.createElement("li"); // create <li> element
+        const trackNb = document.createElement("span"); // create <span> element
+        const songTitle = document.createElement("div"); // create <div> element
+        const duration = document.createElement("span"); // create <span> element
+
+        trackNb.classList.add("track-number");
+        songTitle.classList.add("song-title");
+        duration.classList.add("song-duration");
+
+        objectUrl = URL.createObjectURL(audioFiles[i]); // create blob string for each imported audio file
+        audioEl.setAttribute("src", objectUrl); // add src to <audio>
+        
+
+        /* read more info from media files */
+        jsmediatags.read(audioFiles[i], {
+          onSuccess: function(tag) {
+            let tags = tag.tags;
+
+            let trackString = tags.track ? `${tags.track.match(/[^/]+/)}.` : "01.";
+          let titleString = tags.title ? `${tags.title}` : `${audioFiles![i].name.match(/[^mp3]+/)}`;
+
+            // trackNb.textContent = tags.track ? `${tags.track} |` : "01";
+            trackNb.textContent = trackString;
+            songTitle.textContent = titleString;
+            duration.textContent = `${tags.genre}`;
+
+            liEl.appendChild(audioEl); // add <audio> with src
+            liEl.appendChild(trackNb); // add <span> with track number
+            liEl.appendChild(songTitle); // add <div> with title
+            liEl.appendChild(duration);
+            fileList.appendChild(liEl); // add <li> to <ul>
+          },
+          onError: function(error) {
+            fileList.innerHTML = `${error}`;
+            
+          }
+        });
+      }
+    }
   }
 
   return (
@@ -135,4 +157,5 @@ export const App = () => {
     </div>
   );
 };
+
 export default App;
