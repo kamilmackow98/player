@@ -29,7 +29,7 @@ const Navbar = (props: Props) => {
           </div>
         ))}
       </div>
-      <div className="navbar__container">Playlist Name</div>
+      <div className="navbar__container">Playlist</div>
     </div>
   );
 };

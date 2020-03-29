@@ -106,17 +106,16 @@ export const App = () => {
 
         objectUrl = URL.createObjectURL(audioFiles[i]); // create blob string for each imported audio file
         audioEl.setAttribute("src", objectUrl); // add src to <audio>
-        
+        audioEl.setAttribute("data", objectUrl);
 
         /* read more info from media files */
         jsmediatags.read(audioFiles[i], {
           onSuccess: function(tag) {
             let tags = tag.tags;
 
-            let trackString = tags.track ? `${tags.track.match(/[^/]+/)}.` : "01.";
-          let titleString = tags.title ? `${tags.title}` : `${audioFiles![i].name.match(/[^mp3]+/)}`;
+            let trackString = tags.track ? `${tags.track.match(/[^/]+/)}.`.padStart(3, "0") : "01.";
+            let titleString = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`;
 
-            // trackNb.textContent = tags.track ? `${tags.track} |` : "01";
             trackNb.textContent = trackString;
             songTitle.textContent = titleString;
             duration.textContent = `${tags.genre}`;
@@ -128,8 +127,7 @@ export const App = () => {
             fileList.appendChild(liEl); // add <li> to <ul>
           },
           onError: function(error) {
-            fileList.innerHTML = `${error}`;
-            
+            alert("Something went wrong " + error);
           }
         });
       }

@@ -14,6 +14,12 @@
   font-family: "Saira-Regular";
 }
 
+/* monoscape font */
+@font-face {
+  src: local("Roboto-Regular"), url("../fonts/Roboto-Regular.ttf") format("truetype");
+  font-family: "Roboto-Regular";
+}
+
 /* bold version */
 @font-face {
   src: local("Saira-SemiBold"), url("../fonts/Saira-SemiBold.ttf") format("truetype");
