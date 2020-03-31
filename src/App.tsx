@@ -7,9 +7,10 @@ import jsmediatags from "jsmediatags";
 import "./sass/app.scss";
 
 /**
- * TODO : add color text + icons in panes as the variable theme ($third)
+ * TODO : add color text + icons in panes as the variable theme ($third variable)
  * TODO : add checkbox/button to toggle album reflection ON/OFF
  * TODO : check file types + setIndex(1); // set index on [Album] tab when opened files
+ * TODO : use <ul> element -> list will contain album cover, band name, album name, maybe genre and list items
  */
 
 export const App = () => {
@@ -83,7 +84,7 @@ export const App = () => {
 
       /* removes child elements of the <ul> until there is no more <li> */
       while (fileList.firstChild) {
-        fileList.removeChild(fileList.firstChild); // or simply fileList.firstChild.remove()
+        fileList.removeChild(fileList.firstChild); // or simply fileList.firstChild.remove() but no support for IE
       }
     }
 
@@ -91,39 +92,77 @@ export const App = () => {
     if (!audioFiles || !audioFiles.length) {
       fileList.innerHTML = "No files selected";
     } else {
-      // console.table(audioFiles);
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
-        const audioEl = document.createElement("audio"); // create <audio> element
-        const liEl = document.createElement("li"); // create <li> element
-        const trackNb = document.createElement("span"); // create <span> element
-        const songTitle = document.createElement("div"); // create <div> element
-        const duration = document.createElement("span"); // create <span> element
 
-        trackNb.classList.add("track-number");
-        songTitle.classList.add("song-title");
-        duration.classList.add("song-duration");
+        /**
+         * -------------------------------------------------------
+         * * Create <ul> | <li> | <audio> | <span> | <div> | <img>
+         * -------------------------------------------------------
+         */
 
-        objectUrl = URL.createObjectURL(audioFiles[i]); // create blob string for each imported audio file
-        audioEl.setAttribute("src", objectUrl); // add src to <audio>
-        audioEl.setAttribute("data", objectUrl);
+        const durationEl = document.createElement("span");
+        const audioEl = document.createElement("audio");
+        const trackEl = document.createElement("span");
+        const titleEl = document.createElement("div");
+        const imageEl = document.createElement("img");
+        const liEl = document.createElement("li");
+        const ulEl = document.createElement("ul");
 
-        /* read more info from media files */
+        /**
+         * --------------------------------
+         * * Set className for each element
+         * --------------------------------
+         */
+
+        durationEl.classList.add("song__duration");
+        imageEl.classList.add("album__cover");
+        audioEl.classList.add("song__audio");
+        titleEl.classList.add("song__title");
+        trackEl.classList.add("track-nb");
+        ulEl.classList.add("album");
+        liEl.classList.add("song");
+
+        // create blob string for each imported audio file and add src for each <audio>
+        objectUrl = URL.createObjectURL(audioFiles[i]);
+        audioEl.setAttribute("src", objectUrl);
+
         jsmediatags.read(audioFiles[i], {
           onSuccess: function(tag) {
             let tags = tag.tags;
 
-            let trackString = tags.track ? `${tags.track.match(/[^/]+/)}.`.padStart(3, "0") : "01.";
-            let titleString = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`;
+            /**
+             * -------------------
+             * * set all variables
+             * -------------------
+             */
 
-            trackNb.textContent = trackString;
-            songTitle.textContent = titleString;
-            duration.textContent = `${tags.genre}`;
+            let songTitle = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
+            let trackNb = tags.track ? `${tags.track.match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
+
+            /**
+             * -----------------------------------
+             * * set attributes and data / content
+             * -----------------------------------
+             */
+
+            liEl.setAttribute("data-title", songTitle);
+            liEl.setAttribute("data-track", trackNb);
+
+            trackEl.textContent = trackNb + ".";
+            titleEl.textContent = songTitle;
+            // durationEl.textContent = `${tags.genre}`;
+
+            /**
+             * -------------------
+             * * append to the DOM
+             * -------------------
+             */
 
             liEl.appendChild(audioEl); // add <audio> with src
-            liEl.appendChild(trackNb); // add <span> with track number
-            liEl.appendChild(songTitle); // add <div> with title
-            liEl.appendChild(duration);
+            liEl.appendChild(trackEl); // add <span> with track number
+            liEl.appendChild(titleEl); // add <div> with title
+            liEl.appendChild(durationEl);
             fileList.appendChild(liEl); // add <li> to <ul>
           },
           onError: function(error) {

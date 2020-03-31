@@ -7,13 +7,27 @@
   border-left: 3px solid $secondary;
   overflow: auto;
 
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $primary;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $third;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    &:hover {
+      background: lighten($primary, 4%);
+    }
+  }
+
   .right-pane__content {
     justify-items: center;
     align-items: center;
-    // display: grid;
-
-    height: 100%;
-    width: 100%;
 
     user-select: none;
 
@@ -23,7 +37,7 @@
       margin: 0;
       list-style-type: none;
       padding: 20px;
-      font-family: "Roboto-Regular";
+      font-family: "Roboto-Medium";
       color: $third;
       font-size: 13px;
 
@@ -43,23 +57,22 @@
           background-color: lighten($primary, 4%);
         }
 
-        .track-number {
+        .track-nb {
           width: 25px;
           margin-right: auto;
           text-align: left;
           font-size: 12px;
-          
         }
 
-        .song-title {
+        .song__title {
           width: 100%;
           padding: 0 4px;
           overflow: hidden;
           text-overflow: ellipsis;
-          font-family: "Saira-Regular";
+          font-family: "Saira-Medium";
         }
 
-        .song-duration {
+        .song__duration {
           width: 75px;
           text-overflow: ellipsis;
           overflow: hidden;
