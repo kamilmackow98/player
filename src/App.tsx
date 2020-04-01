@@ -11,6 +11,7 @@ import "./sass/app.scss";
  * TODO : add checkbox/button to toggle album reflection ON/OFF
  * TODO : check file types + setIndex(1); // set index on [Album] tab when opened files
  * TODO : use <ul> element -> list will contain album cover, band name, album name, maybe genre and list items
+ * TODO : try to figure out the fucking scrollbar behavior in Chrome when audio controls are present and music is playing
  */
 
 export const App = () => {
@@ -127,49 +128,67 @@ export const App = () => {
         objectUrl = URL.createObjectURL(audioFiles[i]);
         audioEl.setAttribute("src", objectUrl);
 
-        jsmediatags.read(audioFiles[i], {
-          onSuccess: function(tag) {
-            let tags = tag.tags;
+        audioEl.onloadedmetadata = function() {
+          jsmediatags.read(audioFiles![i], {
+            onSuccess: function(tag) {
+              let tags = tag.tags;
 
-            /**
-             * -------------------
-             * * set all variables
-             * -------------------
-             */
+              /**
+               * -------------------
+               * * set all variables
+               * -------------------
+               */
+              let songTitle = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
+              let trackNb = tags.track ? `${tags.track.match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
+              let duration = audioEl.duration;
 
-            let songTitle = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
-            let trackNb = tags.track ? `${tags.track.match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
+              /**
+               * -----------------------------------
+               * * set attributes and data / content
+               * -----------------------------------
+               */
 
-            /**
-             * -----------------------------------
-             * * set attributes and data / content
-             * -----------------------------------
-             */
+              // liEl.setAttribute("data-title", songTitle);
+              liEl.setAttribute("data-track", trackNb);
 
-            liEl.setAttribute("data-title", songTitle);
-            liEl.setAttribute("data-track", trackNb);
+              trackEl.textContent = trackNb + ".";
+              titleEl.textContent = songTitle;
+              durationEl.textContent = convertSeconds(duration);
 
-            trackEl.textContent = trackNb + ".";
-            titleEl.textContent = songTitle;
-            // durationEl.textContent = `${tags.genre}`;
+              /**
+               * -------------------
+               * * append to the DOM
+               * -------------------
+               */
 
-            /**
-             * -------------------
-             * * append to the DOM
-             * -------------------
-             */
-
-            liEl.appendChild(audioEl); // add <audio> with src
-            liEl.appendChild(trackEl); // add <span> with track number
-            liEl.appendChild(titleEl); // add <div> with title
-            liEl.appendChild(durationEl);
-            fileList.appendChild(liEl); // add <li> to <ul>
-          },
-          onError: function(error) {
-            alert("Something went wrong " + error);
-          }
-        });
+              liEl.appendChild(audioEl); // add <audio> with src
+              liEl.appendChild(trackEl); // add <span> with track number
+              liEl.appendChild(titleEl); // add <div> with title
+              liEl.appendChild(durationEl);
+              fileList.appendChild(liEl); // add <li> to <ul>
+            },
+            onError: function(error) {
+              alert("Something went wrong " + error);
+            }
+          });
+        };
       }
+    }
+  }
+
+  function convertSeconds(duration: number) {
+    let hours, minutes, seconds;
+
+    hours = (Math.floor(duration / 3600) % 60).toString().padStart(2, "0");
+    minutes = (Math.floor(duration / 60) % 60).toString().padStart(2, "0");
+    seconds = Math.floor(duration % 60)
+      .toString()
+      .padStart(2, "0");
+
+    if (duration >= 3600) {
+      return hours + ":" + minutes + ":" + seconds;
+    } else {
+      return minutes + ":" + seconds;
     }
   }
 

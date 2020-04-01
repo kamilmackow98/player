@@ -1,14 +1,15 @@
 .right-pane {
   grid-area: right;
 
+  border-left: 3px solid $secondary;
+  overflow: auto;
+  overflow-x: hidden;
+
   height: 100%;
   width: 100%;
 
-  border-left: 3px solid $secondary;
-  overflow: auto;
-
   &::-webkit-scrollbar {
-    width: 10px;
+    width: 5px;
   }
 
   &::-webkit-scrollbar-track {
@@ -26,28 +27,114 @@
   }
 
   .right-pane__content {
-    justify-items: center;
-    align-items: center;
-
     user-select: none;
+    padding: 20px;
+  }
+
+  /* <div> element with [Album info] & [Audio list] */
+  .album {
+    font-family: "Saira-Medium";
+    font-size: 13px;
+    width: 100%;
+
+    color: $third;
+
+    .album__info {
+      grid-template-columns: 70px 1fr;
+      // grid-template-rows: 1fr 0.875fr 0.75fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      grid-template-areas:
+        "artwork band"
+        "artwork title"
+        "artwork genre";
+
+      align-items: center;
+      justify-items: left;
+
+      display: grid;
+      padding: 0 5px;
+
+      .album__cover {
+        grid-area: artwork;
+        width: 70px;
+        padding: 1px;
+        border: 1px solid lighten($primary, 4%);
+        pointer-events: none;
+      }
+
+      .band__name,
+      .album__title,
+      .album__genre {
+        padding: 0 10px;
+        width: 100%;
+      }
+
+      .band__name {
+        grid-area: band;
+        color: lighten($third, 25%);
+        font-size: 16px;
+
+        // border: 1px solid blue;
+      }
+
+      .album__title {
+        grid-area: title;
+        font-size: 14px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .title {
+          width: auto;
+          white-space: nowrap;
+          padding-right: 10px;
+        }
+
+        .line {
+          width: 100%;
+          background-color: lighten($primary, 4%);
+          height: 2px;
+        }
+
+        .album__year {
+          padding-left: 10px;
+          margin-left: auto;
+        }
+      }
+
+      .album__genre {
+        grid-area: genre;
+        font-size: 12px;
+        position: relative;
+        // border: 1px solid yellow;
+
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 10px;
+          width: calc(100% - 10px);
+          height: 2px;
+          background-color: lighten($primary, 4%);
+        }
+      }
+    }
 
     /* <ul> element */
-    .audioFilesList {
-      padding: 0;
-      margin: 0;
+    .audio__list {
       list-style-type: none;
-      padding: 20px;
-      font-family: "Roboto-Medium";
-      color: $third;
-      font-size: 13px;
+      padding: 5px 0;
+      margin: 0;
 
       li {
+        justify-content: flex-end;
+        align-items: center;
+        display: flex;
+
+        white-space: nowrap;
+
         padding: 0px 10px;
         margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        white-space: nowrap;
 
         &.selectedLi {
           background-color: lighten($primary, 4%);
@@ -57,26 +144,32 @@
           background-color: lighten($primary, 4%);
         }
 
-        .track-nb {
-          width: 25px;
-          margin-right: auto;
-          text-align: left;
+        .track-nb,
+        .song__duration {
+          font-family: "Roboto-Medium";
           font-size: 12px;
         }
 
+        .track-nb {
+          margin-right: auto;
+          text-align: left;
+          width: 25px;
+        }
+
         .song__title {
-          width: 100%;
-          padding: 0 4px;
-          overflow: hidden;
           text-overflow: ellipsis;
-          font-family: "Saira-Medium";
+          overflow: hidden;
+
+          padding: 0 4px;
+          width: 100%;
         }
 
         .song__duration {
-          width: 75px;
           text-overflow: ellipsis;
           overflow: hidden;
+
           text-align: right;
+          width: 75px;
         }
       }
     }
