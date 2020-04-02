@@ -31,7 +31,15 @@
     padding: 20px;
   }
 
-  /* <div> element with [Album info] & [Audio list] */
+  /* [Album] element */
+  .album[data-album="unknown"] {
+    display: block;
+    
+    &.hidden {
+      display: none;
+    }
+  }
+
   .album {
     font-family: "Saira-Medium";
     font-size: 13px;
@@ -40,60 +48,61 @@
     color: $third;
 
     .album__info {
+      grid-template-rows: 18px 30px 14px 8px;
       grid-template-columns: 70px 1fr;
-      // grid-template-rows: 1fr 0.875fr 0.75fr;
-      grid-template-rows: 1fr 1fr 1fr;
       grid-template-areas:
         "artwork band"
         "artwork title"
-        "artwork genre";
+        "artwork genre"
+        "artwork .";
 
+      justify-items: center;
       align-items: center;
-      justify-items: left;
-
       display: grid;
+
       padding: 0 5px;
 
       .album__cover {
+        border: 1px solid lighten($primary, 10%);
         grid-area: artwork;
-        width: 70px;
         padding: 1px;
-        border: 1px solid lighten($primary, 4%);
-        pointer-events: none;
+        width: 70px;
+        height: 70px;
       }
 
       .band__name,
       .album__title,
       .album__genre {
-        padding: 0 10px;
+        padding: 0 5px 0 10px;
         width: 100%;
+        // border: 1px solid red;
       }
 
       .band__name {
-        grid-area: band;
         color: lighten($third, 25%);
         font-size: 16px;
 
-        // border: 1px solid blue;
+        grid-area: band;
       }
 
+      /* title and year */
       .album__title {
         grid-area: title;
         font-size: 14px;
-        display: flex;
+
         flex-direction: row;
         align-items: center;
+        display: flex;
 
         .title {
-          width: auto;
           white-space: nowrap;
           padding-right: 10px;
         }
 
         .line {
+          background-color: lighten($primary, 10%);
+          height: 1px;
           width: 100%;
-          background-color: lighten($primary, 4%);
-          height: 2px;
         }
 
         .album__year {
@@ -103,19 +112,22 @@
       }
 
       .album__genre {
-        grid-area: genre;
-        font-size: 12px;
+        // font-family: "Saira-Regular";
         position: relative;
-        // border: 1px solid yellow;
+        font-size: 12px;
+
+        grid-area: genre;
 
         &::after {
-          content: "";
+          background-color: lighten($primary, 10%);
           position: absolute;
-          bottom: 0;
+          content: "";
+
+          bottom: -5px;
           left: 10px;
+
           width: calc(100% - 10px);
-          height: 2px;
-          background-color: lighten($primary, 4%);
+          height: 1px;
         }
       }
     }
@@ -123,7 +135,7 @@
     /* <ul> element */
     .audio__list {
       list-style-type: none;
-      padding: 5px 0;
+      padding: 5px;
       margin: 0;
 
       li {
@@ -133,7 +145,7 @@
 
         white-space: nowrap;
 
-        padding: 0px 10px;
+        padding: 0px 5px;
         margin: 0;
 
         &.selectedLi {

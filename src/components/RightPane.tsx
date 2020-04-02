@@ -1,57 +1,25 @@
 import React from "react";
-import image from "../images/1.jpg";
+import image from "../images/unk.png";
 
 const RightPane = () => {
   return (
     <div className="right-pane">
       <div className="right-pane__content">
-        <div className="album">
+        <div className="album unknown hidden" data-album="unknown">
           <div className="album__info">
-            <img className="album__cover" src={image} alt="test" />
-            <div className="band__name">TOOL</div>
+            <img className="album__cover" src={image} alt="unknown" />
+
+            <div className="band__name">Unknown albums</div>
+
             <div className="album__title">
-              <div className="title">Fear Inoculum</div> <span className="line"></span>{" "}
-              <span className="album__year">2009</span>
+              <div className="title">Unknown</div> <span className="line"></span>{" "}
+              <span className="album__year">Unknown</span>
             </div>
-            <span className="album__genre">Progressive Metal</span>
+
+            <span className="album__genre">Unknown</span>
           </div>
-          <ul className="audio__list">
-            <li>
-              <span className="track-nb">01.</span>
-              <div className="song__title">Disco Biscuit</div>
-              <span className="song__duration">03:19</span>
-            </li>
-            <li>
-              <span className="track-nb">01.</span>
-              <div className="song__title">Disco Biscuit</div>
-              <span className="song__duration">03:19</span>
-            </li>
-            <li>
-              <span className="track-nb">01.</span>
-              <div className="song__title">Disco Biscuit</div>
-              <span className="song__duration">03:19</span>
-            </li>
-            <li>
-              <span className="track-nb">01.</span>
-              <div className="song__title">Disco Biscuit</div>
-              <span className="song__duration">03:19</span>
-            </li>
-            <li>
-              <span className="track-nb">01.</span>
-              <div className="song__title">Disco Biscuit</div>
-              <span className="song__duration">03:19</span>
-            </li>
-            <li>
-              <span className="track-nb">01.</span>
-              <div className="song__title">Disco Biscuit</div>
-              <span className="song__duration">03:19</span>
-            </li>
-            <li>
-              <span className="track-nb">01.</span>
-              <div className="song__title">Disco Biscuit</div>
-              <span className="song__duration">03:19</span>
-            </li>
-          </ul>
+
+          <ul className="audio__list"></ul>
         </div>
       </div>
     </div>

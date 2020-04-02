@@ -12,6 +12,8 @@ import "./sass/app.scss";
  * TODO : check file types + setIndex(1); // set index on [Album] tab when opened files
  * TODO : use <ul> element -> list will contain album cover, band name, album name, maybe genre and list items
  * TODO : try to figure out the fucking scrollbar behavior in Chrome when audio controls are present and music is playing
+ * TODO : event delegation for each of the <li>
+ * TODO : sort function / button to sort albums by ARTIST NAME in playlist from A to Z AND THEN track numbers inside
  */
 
 export const App = () => {
@@ -72,43 +74,92 @@ export const App = () => {
 
   /* fire on change when user wants to [openFiles] */
   function openFiles(event: ChangeEvent) {
-    let fileList = document.getElementsByClassName("audioFilesList")[0]; // ul list
     let target = event.currentTarget as HTMLInputElement; // current input [openFiles]
     let audioFiles = target.files; // files from the input
 
     /* if <ul> has already files from previous selection or some magically appear */
-    if (fileList.hasChildNodes()) {
+    // if (fileList.hasChildNodes()) {
+
+    /*
       for (let i = 0; i < fileList.children.length; i++) {
         let oldAudioFiles = fileList.children[i].children[0] as HTMLAudioElement; // each <audio> element in each <li> inside <ul>
         URL.revokeObjectURL(oldAudioFiles.src); // release previous unused URL objects
       }
 
-      /* removes child elements of the <ul> until there is no more <li> */
+      // removes child elements of the <ul> until there is no more <li> 
       while (fileList.firstChild) {
         fileList.removeChild(fileList.firstChild); // or simply fileList.firstChild.remove() but no support for IE
       }
-    }
+
+      */
+    // }
 
     /* checks if any file was selected or not */
     if (!audioFiles || !audioFiles.length) {
-      fileList.innerHTML = "No files selected";
+      alert("No files selected");
     } else {
+      /**
+       *
+       * * <div class="album" />
+       *
+       * * <div class="album__info" />
+       * *    <img class="album__cover" />
+       * *    <div class="band__name" />
+       * *    <div class="album__title" />
+       *
+       * *        <div class="title" />
+       * *        <span class="line" />
+       * *        <span class="album__year" />
+       *
+       * *    <span class="album__genre" />
+       *
+       * * <ul class="audio__list" />
+       *
+       * *    <li class="song" />
+       *
+       * *        <audio class="song__audio" />
+       * *        <span class="track-nb" />
+       * *        <div class="song__title" />
+       * *        <span class="song__duration" />
+       *
+       */
+      /*
+      const albumContainerEl = document.createElement("div");
+
+      const albumInfoEl = document.createElement("div");
+
+      const albumImageEl = document.createElement("img");
+      const bandNameEl = document.createElement("div");
+      const albumTitleEl = document.createElement("div");
+      const albumGenreEl = document.createElement("span");
+
+      const titleDivEl = document.createElement("div");
+      const titleLineEl = document.createElement("span");
+      const albumYearEl = document.createElement("span");
+
+      const audioUlEl = document.createElement("ul");
+
+      albumContainerEl.classList.add("album");
+      albumInfoEl.classList.add("album__info");
+      albumImageEl.classList.add("album__cover");
+      bandNameEl.classList.add("band__name");
+      albumTitleEl.classList.add("album__title");
+      albumGenreEl.classList.add("album__genre");
+      titleDivEl.classList.add("title");
+      titleLineEl.classList.add("line");
+      albumYearEl.classList.add("album__year");
+      audioUlEl.classList.add("audio__list");
+
+      */
+
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
-
-        /**
-         * -------------------------------------------------------
-         * * Create <ul> | <li> | <audio> | <span> | <div> | <img>
-         * -------------------------------------------------------
-         */
 
         const durationEl = document.createElement("span");
         const audioEl = document.createElement("audio");
         const trackEl = document.createElement("span");
         const titleEl = document.createElement("div");
-        const imageEl = document.createElement("img");
         const liEl = document.createElement("li");
-        const ulEl = document.createElement("ul");
 
         /**
          * --------------------------------
@@ -117,11 +168,9 @@ export const App = () => {
          */
 
         durationEl.classList.add("song__duration");
-        imageEl.classList.add("album__cover");
         audioEl.classList.add("song__audio");
         titleEl.classList.add("song__title");
         trackEl.classList.add("track-nb");
-        ulEl.classList.add("album");
         liEl.classList.add("song");
 
         // create blob string for each imported audio file and add src for each <audio>
@@ -133,39 +182,117 @@ export const App = () => {
             onSuccess: function(tag) {
               let tags = tag.tags;
 
-              /**
-               * -------------------
-               * * set all variables
-               * -------------------
-               */
               let songTitle = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
               let trackNb = tags.track ? `${tags.track.match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
+              let songAlbum = tags.album ? `${tags.album}` : "Unknown";
+              let artist = tags.artist ? `${tags.artist}` : "Unknown";
+              let albumYear = tags.year ? `${tags.year}` : "Unknown";
+              let albumGenre = tags.genre ? `${tags.genre}` : "Unknown";
               let duration = audioEl.duration;
 
-              /**
-               * -----------------------------------
-               * * set attributes and data / content
-               * -----------------------------------
-               */
+              // let albumCollections = document.querySelectorAll(".album");
 
-              // liEl.setAttribute("data-title", songTitle);
+              /* 
+                3 options :
+                  - song album is unknown - add to the Album <div> with data-album="unknown"
+                  - song album is a new one - create new Album <div> with data-album="new-album"
+                  - song album was already added - add song to the the existing Album <div>
+              */
+
               liEl.setAttribute("data-track", trackNb);
 
+              durationEl.textContent = convertSeconds(duration);
               trackEl.textContent = trackNb + ".";
               titleEl.textContent = songTitle;
-              durationEl.textContent = convertSeconds(duration);
-
-              /**
-               * -------------------
-               * * append to the DOM
-               * -------------------
-               */
 
               liEl.appendChild(audioEl); // add <audio> with src
               liEl.appendChild(trackEl); // add <span> with track number
               liEl.appendChild(titleEl); // add <div> with title
               liEl.appendChild(durationEl);
-              fileList.appendChild(liEl); // add <li> to <ul>
+
+              if (songAlbum === "Unknown") {
+                let unknownAlbumContainer = document.querySelector(".album[data-album='unknown']");
+                let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list");
+
+                if (unknownAlbumContainer && unknownAudioList) {
+                  unknownAlbumContainer.classList.remove("hidden");
+                  unknownAudioList.appendChild(liEl);
+                }
+              } else if (songAlbum) {
+                // let albumsContainers = document.querySelectorAll(".album:not(.unknown)");
+
+                let albumsContainers = document.querySelector(`.album[data-album='${songAlbum}']`);
+
+                if (albumsContainers) {
+                  
+                  let ulList = albumsContainers.getElementsByTagName("ul")[0];
+                  ulList.appendChild(liEl);
+                  
+
+
+                } else {
+                  let rightPaneContent = document.getElementsByClassName("right-pane__content")[0];
+
+                  /**
+                   * * Create DOM elements
+                   */
+
+                  const albumContainerEl = document.createElement("div");
+
+                  const albumInfoEl = document.createElement("div");
+
+                  const albumImageEl = document.createElement("img");
+                  const bandNameEl = document.createElement("div");
+                  const albumTitleEl = document.createElement("div");
+                  const albumGenreEl = document.createElement("span");
+
+                  const titleDivEl = document.createElement("div");
+                  const titleLineEl = document.createElement("span");
+                  const albumYearEl = document.createElement("span");
+
+                  const audioUlEl = document.createElement("ul");
+
+                  albumContainerEl.classList.add("album");
+                  albumInfoEl.classList.add("album__info");
+                  albumImageEl.classList.add("album__cover");
+                  bandNameEl.classList.add("band__name");
+                  albumTitleEl.classList.add("album__title");
+                  albumGenreEl.classList.add("album__genre");
+                  titleDivEl.classList.add("title");
+                  titleLineEl.classList.add("line");
+                  albumYearEl.classList.add("album__year");
+                  audioUlEl.classList.add("audio__list");
+
+                  /**
+                   * * Set attributes and data
+                   */
+
+                  albumContainerEl.setAttribute("data-album", songAlbum);
+                  bandNameEl.textContent = artist;
+                  titleDivEl.textContent = songAlbum;
+                  albumYearEl.textContent = albumYear;
+                  albumGenreEl.textContent = albumGenre;
+
+                  /**
+                   * * Append elements
+                   */
+
+                  rightPaneContent.appendChild(albumContainerEl);
+                  albumContainerEl.appendChild(albumInfoEl);
+                  albumInfoEl.appendChild(albumImageEl);
+                  albumInfoEl.appendChild(bandNameEl);
+                  albumInfoEl.appendChild(albumTitleEl);
+                  albumTitleEl.appendChild(titleDivEl);
+                  albumTitleEl.appendChild(titleLineEl);
+                  albumTitleEl.appendChild(albumYearEl);
+                  albumInfoEl.appendChild(albumGenreEl);
+                  albumContainerEl.appendChild(audioUlEl);
+
+                  audioUlEl.appendChild(liEl);
+                }
+              } else {
+                alert("Something went wrong");
+              }
             },
             onError: function(error) {
               alert("Something went wrong " + error);
