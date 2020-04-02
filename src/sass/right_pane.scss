@@ -34,7 +34,7 @@
   /* [Album] element */
   .album[data-album="unknown"] {
     display: block;
-    
+
     &.hidden {
       display: none;
     }
@@ -60,27 +60,38 @@
       align-items: center;
       display: grid;
 
+      overflow-x: hidden;
+
       padding: 0 5px;
 
       .album__cover {
         border: 1px solid lighten($primary, 10%);
         grid-area: artwork;
         padding: 1px;
-        width: 70px;
         height: 70px;
+        width: 70px;
+
+        pointer-events: none;
+
+        &.noAlbumCover {
+          border: none;
+        }
       }
 
       .band__name,
       .album__title,
       .album__genre {
         padding: 0 5px 0 10px;
+        white-space: nowrap;
         width: 100%;
-        // border: 1px solid red;
       }
 
       .band__name {
         color: lighten($third, 25%);
         font-size: 16px;
+
+        text-overflow: ellipsis;
+        overflow: hidden;
 
         grid-area: band;
       }
@@ -94,9 +105,16 @@
         align-items: center;
         display: flex;
 
+        overflow: hidden;
+        text-overflow: ellipsis;
+
         .title {
-          white-space: nowrap;
+          max-width: fit-content;
           padding-right: 10px;
+          overflow: hidden;
+          width: 100%;
+          min-width: 10px;
+          text-overflow: ellipsis;
         }
 
         .line {
@@ -108,13 +126,15 @@
         .album__year {
           padding-left: 10px;
           margin-left: auto;
+          text-align: right;
         }
       }
 
       .album__genre {
-        // font-family: "Saira-Regular";
         position: relative;
         font-size: 12px;
+
+        text-overflow: ellipsis;
 
         grid-area: genre;
 
@@ -145,7 +165,7 @@
 
         white-space: nowrap;
 
-        padding: 0px 5px;
+        padding: 3px 5px;
         margin: 0;
 
         &.selectedLi {
@@ -159,7 +179,7 @@
         .track-nb,
         .song__duration {
           font-family: "Roboto-Medium";
-          font-size: 12px;
+          font-size: 13px;
         }
 
         .track-nb {
@@ -171,14 +191,16 @@
         .song__title {
           text-overflow: ellipsis;
           overflow: hidden;
-
           padding: 0 4px;
           width: 100%;
+
+          font-family: "Roboto-Medium";
         }
 
         .song__duration {
           text-overflow: ellipsis;
           overflow: hidden;
+          // justify-content: flex-end;
 
           text-align: right;
           width: 75px;

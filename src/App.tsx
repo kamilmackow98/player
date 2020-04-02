@@ -6,7 +6,7 @@ import React, { MouseEvent, ChangeEvent } from "react";
 import jsmediatags from "jsmediatags";
 import "./sass/app.scss";
 
-import picture from "./images/unk.png";
+import UnknownImage from "./images/unk3.png";
 
 /**
  * TODO : add color text + icons in panes as the variable theme ($third variable)
@@ -16,6 +16,7 @@ import picture from "./images/unk.png";
  * TODO : try to figure out the fucking scrollbar behavior in Chrome when audio controls are present and music is playing
  * TODO : event delegation for each of the <li>
  * TODO : sort function / button to sort albums by ARTIST NAME in playlist from A to Z AND THEN track numbers inside
+ * TODO : in openFiles() instead of opening and creatingObjectURL album cover / picture from every audio file - get from the first file with track number === 01
  */
 
 export const App = () => {
@@ -154,26 +155,17 @@ export const App = () => {
         audioEl.onloadedmetadata = function() {
           jsmediatags.read(audioFiles![i], {
             onSuccess: function(tag) {
+              let type = tag.type;
               let tags = tag.tags;
 
               let songTitle = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
-              let trackNb = tags.track ? `${tags.track.match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
+              let trackNb = tags.track ? `${tags.track.toString().match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
               let songAlbum = tags.album ? `${tags.album}` : "Unknown";
               let artist = tags.artist ? `${tags.artist}` : "Unknown";
               let albumYear = tags.year ? `${tags.year}` : "Unknown";
               let albumGenre = tags.genre ? `${tags.genre}` : "Unknown";
-              let albumImage = tags.picture ? `${tags.picture.data}` : picture;
 
               let duration = audioEl.duration;
-
-              console.log(albumImage);
-
-              // let albumCollections = document.querySelectorAll(".album");
-
-              /* 3 options :
-                  - song album is unknown - add to the Album with data-album="unknown" and remove .hidden class to display it
-                  - song album was already added - add song to the the existing Album with data-album="old-Album"
-                  - song album is a new one - create new Album <div> with data-album="new-album" */
 
               liEl.setAttribute("data-track", trackNb);
 
@@ -184,7 +176,12 @@ export const App = () => {
               liEl.appendChild(audioEl); // add <audio> with src
               liEl.appendChild(trackEl); // add <span> with track number
               liEl.appendChild(titleEl); // add <div> with title
-              liEl.appendChild(durationEl);
+              liEl.appendChild(durationEl); // add <span> with duration
+
+              /* 3 options :
+                  - song album is unknown - add to the Album with data-album="unknown" and remove .hidden class to display it
+                  - song album was already added - add song to the the existing Album with data-album="old-Album"
+                  - song album is a new one - create new Album <div> with data-album="new-album" */
 
               if (songAlbum === "Unknown") {
                 let unknownAlbumContainer = document.querySelector(".album[data-album='unknown']");
@@ -237,6 +234,19 @@ export const App = () => {
                    * * Set attributes and data
                    */
 
+                  if (tags.picture) {
+                    const byteArray = new Uint8Array(tags.picture.data);
+                    const blob = new Blob([byteArray], { type });
+                    const albumArtUrl = URL.createObjectURL(blob);
+                    albumImageEl.src = albumArtUrl;
+                    // albumImageEl.onload = function() {
+                    //    URL.revokeObjectURL(albumArtUrl);
+                    // }
+                  } else {
+                    albumImageEl.classList.add("noAlbumCover");
+                    albumImageEl.src = UnknownImage;
+                  }
+
                   albumContainerEl.setAttribute("data-album", songAlbum);
                   bandNameEl.textContent = artist;
                   titleDivEl.textContent = songAlbum;
@@ -249,13 +259,17 @@ export const App = () => {
 
                   rightPaneContent.appendChild(albumContainerEl);
                   albumContainerEl.appendChild(albumInfoEl);
+
                   albumInfoEl.appendChild(albumImageEl);
                   albumInfoEl.appendChild(bandNameEl);
                   albumInfoEl.appendChild(albumTitleEl);
+
                   albumTitleEl.appendChild(titleDivEl);
                   albumTitleEl.appendChild(titleLineEl);
                   albumTitleEl.appendChild(albumYearEl);
+
                   albumInfoEl.appendChild(albumGenreEl);
+
                   albumContainerEl.appendChild(audioUlEl);
 
                   audioUlEl.appendChild(liEl);
@@ -265,7 +279,7 @@ export const App = () => {
               }
             },
             onError: function(error) {
-              alert("Something went wrong " + error);
+              alert("Something went wrong " + error.info + " " + error.type);
             }
           });
         };
@@ -288,6 +302,20 @@ export const App = () => {
       return minutes + ":" + seconds;
     }
   }
+
+  React.useEffect(() => {
+    console.log("Rerendered");
+    let songLiElements = document.querySelectorAll(".song");
+    let albumUlElements = document.querySelectorAll(".audio__list");
+
+    albumUlElements.forEach(function(item, idx) {
+      item.addEventListener("click", (event) => {
+        if(event.target === songLiElements[idx]) {
+          alert("yes");
+        }
+      });
+    });
+  });
 
   return (
     <div className="app">

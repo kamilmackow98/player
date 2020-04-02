@@ -13,6 +13,24 @@
   overflow: auto;
   overflow-x: hidden;
 
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $primary;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $third;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    &:hover {
+      background: lighten($primary, 4%);
+    }
+  }
+
   /* grid item */
   .left-pane__item {
     justify-content: center;
