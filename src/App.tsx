@@ -6,6 +6,8 @@ import React, { MouseEvent, ChangeEvent } from "react";
 import jsmediatags from "jsmediatags";
 import "./sass/app.scss";
 
+import picture from "./images/unk.png";
+
 /**
  * TODO : add color text + icons in panes as the variable theme ($third variable)
  * TODO : add checkbox/button to toggle album reflection ON/OFF
@@ -123,34 +125,6 @@ export const App = () => {
        * *        <span class="song__duration" />
        *
        */
-      /*
-      const albumContainerEl = document.createElement("div");
-
-      const albumInfoEl = document.createElement("div");
-
-      const albumImageEl = document.createElement("img");
-      const bandNameEl = document.createElement("div");
-      const albumTitleEl = document.createElement("div");
-      const albumGenreEl = document.createElement("span");
-
-      const titleDivEl = document.createElement("div");
-      const titleLineEl = document.createElement("span");
-      const albumYearEl = document.createElement("span");
-
-      const audioUlEl = document.createElement("ul");
-
-      albumContainerEl.classList.add("album");
-      albumInfoEl.classList.add("album__info");
-      albumImageEl.classList.add("album__cover");
-      bandNameEl.classList.add("band__name");
-      albumTitleEl.classList.add("album__title");
-      albumGenreEl.classList.add("album__genre");
-      titleDivEl.classList.add("title");
-      titleLineEl.classList.add("line");
-      albumYearEl.classList.add("album__year");
-      audioUlEl.classList.add("audio__list");
-
-      */
 
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
@@ -188,16 +162,18 @@ export const App = () => {
               let artist = tags.artist ? `${tags.artist}` : "Unknown";
               let albumYear = tags.year ? `${tags.year}` : "Unknown";
               let albumGenre = tags.genre ? `${tags.genre}` : "Unknown";
+              let albumImage = tags.picture ? `${tags.picture.data}` : picture;
+
               let duration = audioEl.duration;
+
+              console.log(albumImage);
 
               // let albumCollections = document.querySelectorAll(".album");
 
-              /* 
-                3 options :
-                  - song album is unknown - add to the Album <div> with data-album="unknown"
-                  - song album is a new one - create new Album <div> with data-album="new-album"
-                  - song album was already added - add song to the the existing Album <div>
-              */
+              /* 3 options :
+                  - song album is unknown - add to the Album with data-album="unknown" and remove .hidden class to display it
+                  - song album was already added - add song to the the existing Album with data-album="old-Album"
+                  - song album is a new one - create new Album <div> with data-album="new-album" */
 
               liEl.setAttribute("data-track", trackNb);
 
@@ -219,17 +195,11 @@ export const App = () => {
                   unknownAudioList.appendChild(liEl);
                 }
               } else if (songAlbum) {
-                // let albumsContainers = document.querySelectorAll(".album:not(.unknown)");
-
                 let albumsContainers = document.querySelector(`.album[data-album='${songAlbum}']`);
 
                 if (albumsContainers) {
-                  
                   let ulList = albumsContainers.getElementsByTagName("ul")[0];
                   ulList.appendChild(liEl);
-                  
-
-
                 } else {
                   let rightPaneContent = document.getElementsByClassName("right-pane__content")[0];
 
@@ -291,7 +261,7 @@ export const App = () => {
                   audioUlEl.appendChild(liEl);
                 }
               } else {
-                alert("Something went wrong");
+                alert("Error");
               }
             },
             onError: function(error) {
