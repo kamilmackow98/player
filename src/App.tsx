@@ -2,7 +2,7 @@ import RightPane from "./components/RightPane";
 import LeftPane from "./components/LeftPane";
 import Playbar from "./components/Playbar";
 import Navbar from "./components/Navbar";
-import React, { MouseEvent, ChangeEvent } from "react";
+import React, { ChangeEvent } from "react";
 import jsmediatags from "jsmediatags";
 import "./sass/app.scss";
 
@@ -65,7 +65,7 @@ export const App = () => {
   const addInput_ref = React.useRef<HTMLInputElement>(null); // input to add files to existing / current playlist
 
   /* fires click and opens window to select files */
-  function handleInputsClick(e: MouseEvent) {
+  function handleInputsClick(e: React.MouseEvent) {
     if (e.currentTarget.classList.contains("open-files")) {
       openInput_ref.current!.click();
     } else if (e.currentTarget.classList.contains("add-files")) {
@@ -230,6 +230,8 @@ export const App = () => {
                   albumYearEl.classList.add("album__year");
                   audioUlEl.classList.add("audio__list");
 
+                  audioUlEl.addEventListener("click", handleUlClick);
+
                   /**
                    * * Set attributes and data
                    */
@@ -287,6 +289,10 @@ export const App = () => {
     }
   }
 
+  function handleUlClick(event: MouseEvent) {
+    let target = event.currentTarget;
+  }
+
   function convertSeconds(duration: number) {
     let hours, minutes, seconds;
 
@@ -302,20 +308,6 @@ export const App = () => {
       return minutes + ":" + seconds;
     }
   }
-
-  React.useEffect(() => {
-    console.log("Rerendered");
-    let songLiElements = document.querySelectorAll(".song");
-    let albumUlElements = document.querySelectorAll(".audio__list");
-
-    albumUlElements.forEach(function(item, idx) {
-      item.addEventListener("click", (event) => {
-        if(event.target === songLiElements[idx]) {
-          alert("yes");
-        }
-      });
-    });
-  });
 
   return (
     <div className="app">

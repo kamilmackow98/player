@@ -11,13 +11,13 @@ const Playbar = () => {
     <div className="playbar">
       <div className="playbar__left-controls">
         <span className="previous">
-          <i className="material-icons md-24">fast_rewind</i>
+          <i className="material-icons md-20">fast_rewind</i>
         </span>
         <span className="play-pause">
-          <i className="material-icons md-24">play_arrow</i>
+          <i className="material-icons md-20">play_arrow</i>
         </span>
         <span className="next">
-          <i className="material-icons md-24">fast_forward</i>
+          <i className="material-icons md-20">fast_forward</i>
         </span>
       </div>
       <div className="playbar__progress">
@@ -39,7 +39,7 @@ const Playbar = () => {
             handleClick(e);
           }}
         >
-          <i className="material-icons md-24">repeat</i>
+          <i className="material-icons md-20">repeat</i>
         </span>
 
         {/* shuffle container */}
@@ -49,12 +49,12 @@ const Playbar = () => {
             handleClick(e);
           }}
         >
-          <i className="material-icons md-24">shuffle</i>
+          <i className="material-icons md-20">shuffle</i>
         </span>
 
         {/* volume container */}
         <div className="playbar__volume">
-          <i className="material-icons md-24 vol-icon">volume_down</i>
+          <i className="material-icons md-20 vol-icon">volume_down</i>
 
           <div className="volume__wrap">
             <span className="bar">

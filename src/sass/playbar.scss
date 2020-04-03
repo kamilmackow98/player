@@ -3,16 +3,16 @@
   background-color: $secondary;
   grid-area: playbar;
   display: flex;
-  height: 40px;
+  height: 32px;
   width: 100%;
 
-  font-family: "Saira-SemiBold";
+  font-family: "Roboto-Bold";
 
   color: $third;
   z-index: 10;
 
   user-select: none;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* current time, progress and song time */
@@ -30,12 +30,12 @@
   .duration {
     white-space: nowrap;
     user-select: none;
-    padding: 0 20px;
+    padding: 0 17px;
     width: auto;
   }
 
   .duration {
-    padding-right: 8px;
+    padding-right: 7px;
   }
 
   .current-time {
@@ -45,8 +45,7 @@
   /* bar for entire song duration */
   .progress-bar {
     background-color: $primary;
-    border-radius: 1px;
-    height: 7px;
+    height: 5px;
     width: 100%;
 
     display: flex;
@@ -63,7 +62,6 @@
       box-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
       transition: all 200ms ease;
       background-color: $third;
-      border-radius: 1px;
       width: 69%;
     }
   }
@@ -75,6 +73,8 @@
   align-items: center;
   display: flex;
 
+  margin-left: 10px;
+
   /* controls - containers [not icons] */
   .previous,
   .play-pause,
@@ -84,7 +84,7 @@
     color: $third;
 
     height: 100%;
-    width: 40px;
+    width: 30px;
 
     transition: all 200ms ease;
     user-select: none;
@@ -120,7 +120,7 @@
 
     text-shadow: 0px 0px 5px rgba(255, 255, 255, 0);
     transition: all 200ms ease;
-    width: 40px;
+    width: 35px;
 
     /* when selected */
     &.selected {
@@ -143,14 +143,14 @@
     background-color: $secondary;
     max-height: 70vh;
     height: 200px;
-    width: 40px;
+    width: 35px;
 
-    transform: translate3d(0, 110%, 0);
+    transform: translate3d(110%, 0, 0);
     transition: all 250ms ease;
     z-index: -1;
 
     position: absolute;
-    bottom: 40px;
+    bottom: 32px;
     left: 0;
 
     justify-content: center;
@@ -162,7 +162,7 @@
       background-color: $primary;
       transition: all 0.25s ease;
       height: 80%;
-      width: 25%;
+      width: 20%;
 
       display: flex;
 
