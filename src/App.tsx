@@ -127,6 +127,8 @@ export const App = () => {
        *
        */
 
+      // console.table(audioFiles);
+
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
 
@@ -196,7 +198,30 @@ export const App = () => {
 
                 if (albumsContainers) {
                   let ulList = albumsContainers.getElementsByTagName("ul")[0];
-                  ulList.appendChild(liEl);
+                  let songsList = ulList.getElementsByClassName("song");
+
+                  let trackNbArray = [];
+
+                  for (let j = 0; j < songsList.length; j++) {
+                    let trackNumbers = songsList[j].getAttribute("data-track");
+
+                    trackNbArray.push(trackNumbers);
+                  }
+
+                  trackNbArray.push(trackNb);
+                  trackNbArray.sort();
+
+                  let indexToAppend = trackNbArray.indexOf(trackNb);
+
+                  if (indexToAppend === 0) {
+                    ulList.insertBefore(liEl, songsList[0]);
+                  } else {
+                    if (songsList[indexToAppend]) {
+                      ulList.insertBefore(liEl, songsList[indexToAppend]);
+                    } else {
+                      ulList.appendChild(liEl);
+                    }
+                  }
                 } else {
                   let rightPaneContent = document.getElementsByClassName("right-pane__content")[0];
 
@@ -290,7 +315,7 @@ export const App = () => {
   }
 
   function handleUlClick(event: MouseEvent) {
-    let target = event.currentTarget;
+    // let target = event.currentTarget;
   }
 
   function convertSeconds(duration: number) {
