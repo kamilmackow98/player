@@ -17,6 +17,8 @@ import UnknownImage from "./images/unk3.png";
  * TODO : event delegation for each of the <li>
  * TODO : sort function / button to sort albums by ARTIST NAME in playlist from A to Z AND THEN track numbers inside
  * TODO : in openFiles() instead of opening and creatingObjectURL album cover / picture from every audio file - get from the first file with track number === 01
+ * TODO : add condition to check if audio / song already exists
+ * TODO : simple audio element with src changing / getting from double click on any song from the lists on right pane
  */
 
 export const App = () => {
@@ -77,25 +79,43 @@ export const App = () => {
 
   /* fire on change when user wants to [openFiles] */
   function openFiles(event: ChangeEvent) {
+    let rightPaneContent = document.getElementsByClassName("right-pane__content")[0]; // container with all [albums] <div>
+    let allAlbumsNotUnkown = document.querySelectorAll(".album:not(.unknown)"); // get all the albums but not unknown
     let target = event.currentTarget as HTMLInputElement; // current input [openFiles]
     let audioFiles = target.files; // files from the input
 
-    /* if <ul> has already files from previous selection or some magically appear */
-    // if (fileList.hasChildNodes()) {
+    let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list");
+    let unknownAlbum = document.querySelector(".album[data-album='unknown']");
 
-    /*
-      for (let i = 0; i < fileList.children.length; i++) {
-        let oldAudioFiles = fileList.children[i].children[0] as HTMLAudioElement; // each <audio> element in each <li> inside <ul>
-        URL.revokeObjectURL(oldAudioFiles.src); // release previous unused URL objects
+    if (unknownAudioList && unknownAlbum) {
+      while (unknownAudioList!.firstChild) {
+        unknownAudioList!.removeChild(unknownAudioList!.firstChild);
+      }
+      unknownAlbum.classList.add("hidden");
+    }
+
+    allAlbumsNotUnkown.forEach(function(child) {
+      rightPaneContent.removeChild(child);
+    });
+
+    /* if right pane has already files from previous selection or some magically appear
+       checks if there's any div with "album" class but not the hidden <div> with unknown album */
+    if (allAlbumsNotUnkown.length) {
+      let imgElements = document.querySelectorAll(".album__cover:not(.unknownImg)");
+      let audioElements = document.querySelectorAll(".song__audio");
+
+      /* releases from memory all URL objects from <img> files src */
+      for (let k = 0; k < imgElements.length; k++) {
+        let imgSrc = imgElements[k] as HTMLImageElement;
+        URL.revokeObjectURL(imgSrc.src);
       }
 
-      // removes child elements of the <ul> until there is no more <li> 
-      while (fileList.firstChild) {
-        fileList.removeChild(fileList.firstChild); // or simply fileList.firstChild.remove() but no support for IE
+      /* releases from memory all URL objects from <audio> files src */
+      for (let l = 0; l < audioElements.length; l++) {
+        let oldAudio = audioElements[l] as HTMLAudioElement;
+        URL.revokeObjectURL(oldAudio.src); // release previous URL objects / src for audio files
       }
-
-      */
-    // }
+    }
 
     /* checks if any file was selected or not */
     if (!audioFiles || !audioFiles.length) {
@@ -169,6 +189,7 @@ export const App = () => {
 
               let duration = audioEl.duration;
 
+              // audioEl.muted = true;
               liEl.setAttribute("data-track", trackNb);
 
               durationEl.textContent = convertSeconds(duration);
@@ -179,6 +200,7 @@ export const App = () => {
               liEl.appendChild(trackEl); // add <span> with track number
               liEl.appendChild(titleEl); // add <div> with title
               liEl.appendChild(durationEl); // add <span> with duration
+              liEl.addEventListener("dblclick", handleUlClick);
 
               /* 3 options :
                   - song album is unknown - add to the Album with data-album="unknown" and remove .hidden class to display it
@@ -187,7 +209,6 @@ export const App = () => {
 
               if (songAlbum === "Unknown") {
                 let unknownAlbumContainer = document.querySelector(".album[data-album='unknown']");
-                let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list");
 
                 if (unknownAlbumContainer && unknownAudioList) {
                   unknownAlbumContainer.classList.remove("hidden");
@@ -204,7 +225,6 @@ export const App = () => {
 
                   for (let j = 0; j < songsList.length; j++) {
                     let trackNumbers = songsList[j].getAttribute("data-track");
-
                     trackNbArray.push(trackNumbers);
                   }
 
@@ -215,16 +235,12 @@ export const App = () => {
 
                   if (indexToAppend === 0) {
                     ulList.insertBefore(liEl, songsList[0]);
+                  } else if (songsList[indexToAppend]) {
+                    ulList.insertBefore(liEl, songsList[indexToAppend]);
                   } else {
-                    if (songsList[indexToAppend]) {
-                      ulList.insertBefore(liEl, songsList[indexToAppend]);
-                    } else {
-                      ulList.appendChild(liEl);
-                    }
+                    ulList.appendChild(liEl);
                   }
                 } else {
-                  let rightPaneContent = document.getElementsByClassName("right-pane__content")[0];
-
                   /**
                    * * Create DOM elements
                    */
@@ -254,8 +270,6 @@ export const App = () => {
                   titleLineEl.classList.add("line");
                   albumYearEl.classList.add("album__year");
                   audioUlEl.classList.add("audio__list");
-
-                  audioUlEl.addEventListener("click", handleUlClick);
 
                   /**
                    * * Set attributes and data
@@ -314,8 +328,19 @@ export const App = () => {
     }
   }
 
-  function handleUlClick(event: MouseEvent) {
-    // let target = event.currentTarget;
+  function handleUlClick(e: MouseEvent) {
+    let currentTarget = e.currentTarget as HTMLLIElement;
+    // let target = e.target as HTMLLIElement;
+
+    if (currentTarget && currentTarget.nodeName === "LI") {
+      let audio = currentTarget.getElementsByTagName("audio")[0];
+      if (!audio.paused) {
+        audio.pause();
+      } else {
+        audio.currentTime = 0;
+        audio.play();
+      }
+    }
   }
 
   function convertSeconds(duration: number) {

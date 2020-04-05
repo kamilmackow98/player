@@ -7,7 +7,7 @@ const RightPane = () => {
       <div className="right-pane__content">
         <div className="album unknown hidden" data-album="unknown">
           <div className="album__info">
-            <img className="album__cover noAlbumCover" src={unknown} alt="unknown" />
+            <img className="album__cover noAlbumCover unknownImg" src={unknown} alt="unknown" />
 
             <div className="band__name">Unknown Albums</div>
 

@@ -29,6 +29,10 @@
   .right-pane__content {
     user-select: none;
     padding: 20px;
+
+    audio {
+      display: none;
+    }
   }
 
   /* [Album] element */
