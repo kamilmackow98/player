@@ -1,4 +1,4 @@
-import React, { MouseEvent, KeyboardEvent } from "react";
+import React from "react";
 
 interface Content {
   id: string;
@@ -10,51 +10,6 @@ interface Props {
 }
 
 const LeftPane = (props: Props) => {
-  const playlist_btn = React.useRef<HTMLDivElement>(null); // or React.createRef<HTMLUListElement>();
-
-  const input_container = React.useRef<HTMLDivElement>(null); // div with input
-  const playlist_input = React.useRef<HTMLInputElement>(null); // input [new playlist]
-
-  const ulListRef = React.createRef<HTMLUListElement>(); // ul list element
-
-  /* on click [Create New Playlist] */
-  function new_playlist(e: MouseEvent) {
-    playlist_btn.current!.classList.add("hide"); // hide btn
-    input_container.current!.classList.remove("hide"); // show input
-
-    playlist_input.current!.removeAttribute("disabled"); // make accessible
-    playlist_input.current!.focus(); // auto focus after click
-  }
-
-  function reset_input() {
-    playlist_btn.current!.classList.remove("hide"); // show btn
-    input_container.current!.classList.add("hide"); // hide input
-
-    playlist_input.current!.setAttribute("disabled", ""); // disable input
-    playlist_input.current!.value = ""; // reset value in input
-  }
-
-  /* on key press and if key pressed === Enter */
-  function addPlaylist(e: KeyboardEvent) {
-    if (e.key === "Enter" && playlist_input.current!.value.length > 0 && playlist_input.current!.value.trim().length) {
-      /* if correct value - accept the playlist and create new one */
-
-      const newLi = document.createElement("li"); // create new <li> element
-      newLi.textContent = playlist_input.current!.value.trim(); // <li> content = value from input
-
-      ulListRef.current!.appendChild(newLi); // add created <li> to the <ul>
-
-      if (ulListRef.current!.classList.contains("hide")) {
-        ulListRef.current!.classList.remove("hide"); // shows <ul> element if contains .hide class
-      }
-
-      reset_input();
-    } else if (e.key === "Enter") {
-      /* otherwise reset entry */
-      reset_input();
-    }
-  }
-
   const { index, handleInputs } = props;
 
   return (
@@ -90,12 +45,14 @@ const LeftPane = (props: Props) => {
                 </div>
               </div>
             )}
+
             {content.id === "album" && (
               <div className="reflection">
                 <span className="reflection__img"></span>
                 <span className="reflection__shadow"></span>
               </div>
             )}
+
             {content.id === "lyrics" && (
               <div className="lyrics__content">
                 Lorem ipsum dolor, sit amet consectetur adipisicing elit. Autem veritatis, delectus tempora iure
@@ -108,7 +65,67 @@ const LeftPane = (props: Props) => {
                 porro praesentium, laudantium possimus neque beatae laborum quia assumenda.
               </div>
             )}
-            {content.id === "playlists" && (
+
+            {content.id === "theme" && <div className="theme__content">Theme</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export let ContentCollection: Content[] = [{ id: "file" }, { id: "album" }, { id: "lyrics" }, { id: "theme" }];
+
+export default LeftPane;
+
+/*
+
+const playlist_btn = React.useRef<HTMLDivElement>(null); // or React.createRef<HTMLUListElement>();
+
+  const input_container = React.useRef<HTMLDivElement>(null); // div with input
+  const playlist_input = React.useRef<HTMLInputElement>(null); // input [new playlist]
+
+  const ulListRef = React.createRef<HTMLUListElement>(); // ul list element
+
+  // on click [Create New Playlist] 
+  function new_playlist(e: MouseEvent) {
+    playlist_btn.current!.classList.add("hide"); // hide btn
+    input_container.current!.classList.remove("hide"); // show input
+
+    playlist_input.current!.removeAttribute("disabled"); // make accessible
+    playlist_input.current!.focus(); // auto focus after click
+  }
+
+  function reset_input() {
+    playlist_btn.current!.classList.remove("hide"); // show btn
+    input_container.current!.classList.add("hide"); // hide input
+
+    playlist_input.current!.setAttribute("disabled", ""); // disable input
+    playlist_input.current!.value = ""; // reset value in input
+  }
+
+  // on key press and if key pressed === Enter 
+  function addPlaylist(e: KeyboardEvent) {
+    if (e.key === "Enter" && playlist_input.current!.value.length > 0 && playlist_input.current!.value.trim().length) {
+      // if correct value - accept the playlist and create new one 
+
+      const newLi = document.createElement("li"); // create new <li> element
+      newLi.textContent = playlist_input.current!.value.trim(); // <li> content = value from input
+
+      ulListRef.current!.appendChild(newLi); // add created <li> to the <ul>
+
+      if (ulListRef.current!.classList.contains("hide")) {
+        ulListRef.current!.classList.remove("hide"); // shows <ul> element if contains .hide class
+      }
+
+      reset_input();
+    } else if (e.key === "Enter") {
+      // otherwise reset entry 
+      reset_input();
+    }
+  }
+
+{content.id === "playlists" && (
               <div className="playlists__content">
                 <div
                   ref={playlist_btn}
@@ -138,20 +155,5 @@ const LeftPane = (props: Props) => {
                 <ul className="playlist__ul hide" ref={ulListRef}></ul>
               </div>
             )}
-            {content.id === "theme" && <div className="theme__content">Theme</div>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
-export let ContentCollection: Content[] = [
-  { id: "file" },
-  { id: "album" },
-  { id: "lyrics" },
-  { id: "playlists" },
-  { id: "theme" }
-];
-
-export default LeftPane;
+*/

@@ -94,17 +94,20 @@
     align-items: center;
     display: flex;
 
-    margin-bottom: 20px;
-    padding: 20px;
+    flex-direction: column;
 
-    min-width: 250px;
-    width: 50%;
+    margin-bottom: 20px;
+    padding: 20px 0;
+
+    width: 80%;
 
     border: 3px solid lighten($primary, 4%);
     transition: border 200ms ease;
 
-    &:hover {
-      border: 3px solid $secondary;
+    &:active {
+      -webkit-tap-highlight-color: transparent;
+      background-color: lighten($primary, 4%);
+      outline: none;
     }
   }
 
@@ -126,6 +129,11 @@
 
   .drag-files {
     flex-direction: column;
+    display: none;
+  }
+
+  .add-files {
+    margin-bottom: 0;
   }
 }
 
@@ -341,4 +349,37 @@
 
 #theme {
   border: 1px solid green;
+}
+
+/* --------------------------- */
+/* --------- DESKTOP --------- */
+/* --------------------------- */
+@media screen and (min-width: 769px) {
+  #file {
+    .drag-files,
+    .open-files,
+    .add-files {
+      flex-direction: row;
+      display: flex;
+
+      padding: 20px;
+
+      min-width: 250px;
+      width: 50%;
+
+      &:hover {
+        border: 3px solid $secondary;
+      }
+
+      &:active {
+        -webkit-tap-highlight-color: transparent;
+        background-color: $secondary;
+        outline: none;
+      }
+    }
+
+    .drag-files {
+      flex-direction: column;
+    }
+  }
 }

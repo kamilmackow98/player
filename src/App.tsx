@@ -13,12 +13,12 @@ import UnknownImage from "./images/unk3.png";
  * TODO : add checkbox/button to toggle album reflection ON/OFF
  * TODO : check file types + setIndex(1); // set index on [Album] tab when opened files
  * TODO : use <ul> element -> list will contain album cover, band name, album name, maybe genre and list items
- * TODO : try to figure out the fucking scrollbar behavior in Chrome when audio controls are present and music is playing
  * TODO : event delegation for each of the <li>
  * TODO : sort function / button to sort albums by ARTIST NAME in playlist from A to Z AND THEN track numbers inside
  * TODO : in openFiles() instead of opening and creatingObjectURL album cover / picture from every audio file - get from the first file with track number === 01
  * TODO : add condition to check if audio / song already exists
  * TODO : simple audio element with src changing / getting from double click on any song from the lists on right pane
+ * TODO : on double click on <ul> -> hide <li> elements
  */
 
 export const App = () => {
@@ -34,6 +34,10 @@ export const App = () => {
 
     let pane_album = document.getElementById("album") as HTMLDivElement; // album cover
     let album_width_init = pane_album.offsetWidth; // initial width value
+
+    let currentTimeEl = document.getElementsByClassName("current-time")[0] as HTMLSpanElement;
+    let lineProgressBar = document.querySelector(".progress-bar .line") as HTMLSpanElement;
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
 
     pane_album.style.height = `${album_width_init}px`; // initialize height = same as width
 
@@ -53,6 +57,14 @@ export const App = () => {
       }
     }
 
+    function updateProgressBar() {
+      currentTimeEl.textContent = convertSeconds(mainAudio.currentTime);
+      let percentage = parseFloat(((mainAudio.currentTime / mainAudio.duration) * 100).toFixed(3));
+
+      lineProgressBar.style.transform = `translate3d(${-100.2 + percentage}%, 0, 0)`;
+    }
+
+    mainAudio.addEventListener("timeupdate", updateProgressBar);
     window.addEventListener("resize", ratio);
     play_pause.addEventListener("click", togglePlay);
 
@@ -60,6 +72,7 @@ export const App = () => {
     return function cleanupListener() {
       window.removeEventListener("resize", ratio);
       play_pause.removeEventListener("click", togglePlay);
+      mainAudio.removeEventListener("timeupdate", updateProgressBar);
     };
   });
 
@@ -94,7 +107,7 @@ export const App = () => {
       unknownAlbum.classList.add("hidden");
     }
 
-    allAlbumsNotUnkown.forEach(function(child) {
+    allAlbumsNotUnkown.forEach(function (child) {
       rightPaneContent.removeChild(child);
     });
 
@@ -174,9 +187,9 @@ export const App = () => {
         objectUrl = URL.createObjectURL(audioFiles[i]);
         audioEl.setAttribute("src", objectUrl);
 
-        audioEl.onloadedmetadata = function() {
+        audioEl.onloadedmetadata = function () {
           jsmediatags.read(audioFiles![i], {
-            onSuccess: function(tag) {
+            onSuccess: function (tag) {
               let type = tag.type;
               let tags = tag.tags;
 
@@ -189,11 +202,13 @@ export const App = () => {
 
               let duration = audioEl.duration;
 
-              // audioEl.muted = true;
               liEl.setAttribute("data-track", trackNb);
+              audioEl.muted = true;
 
               durationEl.textContent = convertSeconds(duration);
               trackEl.textContent = trackNb + ".";
+
+              titleEl.setAttribute("data-artist", artist);
               titleEl.textContent = songTitle;
 
               liEl.appendChild(audioEl); // add <audio> with src
@@ -260,6 +275,10 @@ export const App = () => {
 
                   const audioUlEl = document.createElement("ul");
 
+                  /**
+                   * * Set classes
+                   */
+
                   albumContainerEl.classList.add("album");
                   albumInfoEl.classList.add("album__info");
                   albumImageEl.classList.add("album__cover");
@@ -293,6 +312,7 @@ export const App = () => {
                   titleDivEl.textContent = songAlbum;
                   albumYearEl.textContent = albumYear;
                   albumGenreEl.textContent = albumGenre;
+                  albumInfoEl.addEventListener("dblclick", displayHideList);
 
                   /**
                    * * Append elements
@@ -319,33 +339,61 @@ export const App = () => {
                 alert("Error");
               }
             },
-            onError: function(error) {
+            onError: function (error) {
               alert("Something went wrong " + error.info + " " + error.type);
-            }
+            },
           });
         };
       }
     }
   }
 
+  function displayHideList(e: MouseEvent) {
+    let currentTarget = e.currentTarget as HTMLDivElement;
+    let audioList = currentTarget.nextElementSibling;
+
+    if (!audioList) {
+      alert("It appears that list is gone, what have you done");
+    } else {
+      if (audioList.classList.contains("hidden")) {
+        audioList.classList.remove("hidden");
+      } else {
+        audioList.classList.add("hidden");
+      }
+    }
+  }
+
   function handleUlClick(e: MouseEvent) {
     let currentTarget = e.currentTarget as HTMLLIElement;
-    // let target = e.target as HTMLLIElement;
 
     if (currentTarget && currentTarget.nodeName === "LI") {
+      let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
       let audio = currentTarget.getElementsByTagName("audio")[0];
-      if (!audio.paused) {
-        audio.pause();
+
+      let playbarDuration = document.getElementsByClassName("duration")[0];
+
+      let songName = currentTarget.getElementsByClassName("song__title")[0];
+      let artist = songName.getAttribute("data-artist");
+
+      if (mainAudio.src) {
+        mainAudio.src = audio.src;
+        mainAudio.load();
+        mainAudio.play();
       } else {
-        audio.currentTime = 0;
-        audio.play();
+        mainAudio.src = audio.src;
+        mainAudio.play();
+      }
+
+      playbarDuration.textContent = convertSeconds(audio.duration);
+
+      if (songName.textContent) {
+        document.title = artist + " - " + songName.textContent;
       }
     }
   }
 
   function convertSeconds(duration: number) {
     let hours, minutes, seconds;
-
     hours = (Math.floor(duration / 3600) % 60).toString().padStart(2, "0");
     minutes = (Math.floor(duration / 60) % 60).toString().padStart(2, "0");
     seconds = Math.floor(duration % 60)
@@ -365,7 +413,7 @@ export const App = () => {
 
       <input
         accept="audio/*"
-        onChange={e => openFiles(e)}
+        onChange={(e) => openFiles(e)}
         className="openFiles-input"
         type="file"
         multiple
@@ -377,6 +425,8 @@ export const App = () => {
       <RightPane />
 
       <Playbar />
+
+      <audio id="mainAudio" className="mainAudio" />
     </div>
   );
 };

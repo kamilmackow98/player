@@ -21,13 +21,13 @@ const Playbar = () => {
         </span>
       </div>
       <div className="playbar__progress">
-        <span className="current-time">1 : 06</span>
+        <span className="current-time">00:00</span>
 
         <span className="progress-bar">
           <span className="line"></span>
         </span>
 
-        <span className="duration">4 : 20</span>
+        <span className="duration">00:00</span>
       </div>
 
       {/* repeat, shuffle and volume controls */}
@@ -35,7 +35,7 @@ const Playbar = () => {
         {/* repeat container */}
         <span
           className="playbar__repeat"
-          onClick={e => {
+          onClick={(e) => {
             handleClick(e);
           }}
         >
@@ -45,7 +45,7 @@ const Playbar = () => {
         {/* shuffle container */}
         <span
           className="playbar__shuffle"
-          onClick={e => {
+          onClick={(e) => {
             handleClick(e);
           }}
         >

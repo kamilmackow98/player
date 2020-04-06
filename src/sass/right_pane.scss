@@ -2,11 +2,11 @@
   grid-area: right;
 
   border-left: 3px solid $secondary;
-  overflow: auto;
-  overflow-x: hidden;
 
   height: 100%;
   width: 100%;
+  overflow: auto;
+  overflow-x: hidden;
 
   &::-webkit-scrollbar {
     width: 5px;
@@ -64,9 +64,9 @@
       align-items: center;
       display: grid;
 
-      overflow-x: hidden;
+      overflow: hidden;
 
-      padding: 0 5px;
+      padding: 5px;
 
       .album__cover {
         border: 1px solid lighten($primary, 10%);
@@ -159,8 +159,12 @@
     /* <ul> element */
     .audio__list {
       list-style-type: none;
-      padding: 5px;
+      padding: 0 5px;
       margin: 0;
+
+      &.hidden {
+        display: none;
+      }
 
       li {
         justify-content: flex-end;

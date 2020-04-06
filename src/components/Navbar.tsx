@@ -39,7 +39,6 @@ export let LinksCollection: Links[] = [
   { name: "File" },
   { name: "Album" },
   { name: "Lyrics" },
-  { name: "Playlists" },
   { name: "Theme" }
 ];
 

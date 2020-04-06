@@ -21,7 +21,12 @@
     "left right"
     "playbar playbar";
 
-  .openFiles-input, .addFiles-input {
+  .openFiles-input,
+  .addFiles-input {
     display: none;
-  } 
+  }
+
+  audio {
+    display: none !important;
+  }
 }
