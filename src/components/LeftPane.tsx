@@ -20,7 +20,7 @@ const LeftPane = (props: Props) => {
             {content.id === "file" && (
               <div className="file__content">
                 <span className="drag-files">
-                  <i className="material-icons md-64">save_alt</i>
+                  <i className="material-icons size">save_alt</i>
                   <span>Drag .mp3 files</span>
                 </span>
 
@@ -30,7 +30,7 @@ const LeftPane = (props: Props) => {
                     handleInputs(e);
                   }}
                 >
-                  <i className="material-icons md-48">file_copy</i>
+                  <i className="material-icons size">file_copy</i>
                   <div>Open files...</div>
                 </div>
 
@@ -40,7 +40,7 @@ const LeftPane = (props: Props) => {
                     handleInputs(e);
                   }}
                 >
-                  <i className="material-icons md-48">add</i>
+                  <i className="material-icons size">add</i>
                   <div>Add files...</div>
                 </div>
               </div>

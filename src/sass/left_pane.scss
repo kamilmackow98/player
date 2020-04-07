@@ -13,6 +13,8 @@
   overflow: auto;
   overflow-x: hidden;
 
+  font-size: 14px;
+
   &::-webkit-scrollbar {
     width: 5px;
   }
@@ -99,6 +101,7 @@
     margin-bottom: 20px;
     padding: 20px 0;
 
+    min-width: 100px;
     width: 80%;
 
     border: 3px solid lighten($primary, 4%);
@@ -111,19 +114,29 @@
     }
   }
 
+  .open-files {
+    i {
+      margin-bottom: 5px;
+    }
+  }
+
   .open-files,
   .add-files {
     cursor: pointer;
+    height: 110px;
 
     div {
       white-space: nowrap;
       text-align: center;
-      margin-left: 10px;
       width: 100px;
     }
 
     i {
       cursor: pointer;
+
+      &.size {
+        font-size: 36px;
+      }
     }
   }
 
@@ -289,7 +302,7 @@
         padding: 2px;
         font-family: "Saira-SemiBold";
         text-align: center;
-        font-size: 16px;
+        font-size: 14px;
 
         height: 100%;
         width: 100%;
@@ -352,17 +365,61 @@
 }
 
 /* --------------------------- */
+/* --------- TABLETS --------- */
+/* --------------------------- */
+@media screen and (min-width: 641px) and (max-width: 1280px) {
+  #file {
+    .drag-files,
+    .open-files,
+    .add-files {
+      flex-direction: row;
+
+      min-width: 220px;
+      width: 60%;
+
+      &:hover {
+        border: 3px solid $secondary;
+      }
+
+      &:active {
+        -webkit-tap-highlight-color: transparent;
+        background-color: transparent;
+        border: 3px solid $secondary;
+        outline: none;
+      }
+    }
+
+    .open-files {
+      i {
+        margin-bottom: 0;
+      }
+    }
+
+    .open-files,
+    .add-files {
+      height: auto;
+
+      div {
+        margin-left: 10px;
+      }
+
+      i.size {
+        font-size: 48px;
+      }
+    }
+  }
+}
+
+/* --------------------------- */
 /* --------- DESKTOP --------- */
 /* --------------------------- */
-@media screen and (min-width: 769px) {
+@media screen and (min-width: 1281px) {
   #file {
     .drag-files,
     .open-files,
     .add-files {
       flex-direction: row;
       display: flex;
-
-      padding: 20px;
 
       min-width: 250px;
       width: 50%;
@@ -373,13 +430,37 @@
 
       &:active {
         -webkit-tap-highlight-color: transparent;
-        background-color: $secondary;
+        background-color: transparent;
+        border: 3px solid $secondary;
         outline: none;
+      }
+    }
+
+    .open-files {
+      i {
+        margin-bottom: 0;
       }
     }
 
     .drag-files {
       flex-direction: column;
+
+      i.size {
+        font-size: 150px;
+      }
+    }
+
+    .open-files,
+    .add-files {
+      height: auto;
+
+      div {
+        margin-left: 10px;
+      }
+
+      i.size {
+        font-size: 48px;
+      }
     }
   }
 }
