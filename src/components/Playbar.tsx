@@ -1,6 +1,10 @@
 import React, { MouseEvent } from "react";
 
-const Playbar = () => {
+interface Props {
+  isPlaying: boolean;
+}
+
+const Playbar = (props: Props) => {
   /* toggle class on controls when clicked */
   function handleClick(e: MouseEvent) {
     e.stopPropagation();
@@ -16,20 +20,20 @@ const Playbar = () => {
           <i className="material-icons md-20">fast_rewind</i>
         </span>
         <span className="play-pause">
-          <i className="material-icons md-20">play_arrow</i>
+          <i className="material-icons md-20">{props.isPlaying ? "pause" : "play_arrow"}</i>
         </span>
         <span className="next">
           <i className="material-icons md-20">fast_forward</i>
         </span>
       </div>
       <div className="playbar__progress">
-        <span className="current-time">00:00</span>
+        <span className="current-time">-- : --</span>
 
         <span className="progress-bar">
           <span className="line"></span>
         </span>
 
-        <span className="duration">00:00</span>
+        <span className="duration">-- : --</span>
       </div>
 
       {/* repeat, shuffle and volume controls */}

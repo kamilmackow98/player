@@ -18,15 +18,18 @@
   /* timestamp container */
   .timestamp {
     position: absolute;
-    height: 20px;
-    width: 40px;
+    // height: 20px;
+    padding: 10px;
+    width: auto;
 
     left: 0px;
-    top: -20px;
+    bottom: 120%;
+
+    background-color: $secondary;
+    border-radius: 2px;
 
     display: none;
 
-    border: 1px solid red;
   }
 }
 
@@ -62,6 +65,8 @@
     background-color: $primary;
     height: 5px;
     width: 100%;
+
+    cursor: pointer;
 
     overflow: hidden;
     display: flex;

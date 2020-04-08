@@ -11,18 +11,20 @@ import UnknownImage from "./images/unk3.png";
 /**
  * TODO : add color text + icons in panes as the variable theme ($third variable)
  * TODO : add checkbox/button to toggle album reflection ON/OFF
- * TODO : check file types + setIndex(1); // set index on [Album] tab when opened files
- * TODO : use <ul> element -> list will contain album cover, band name, album name, maybe genre and list items
- * TODO : event delegation for each of the <li>
- * TODO : sort function / button to sort albums by ARTIST NAME in playlist from A to Z AND THEN track numbers inside
+ * TODO : check file types
+ * TODO : set index on [Album] tab after opening the files
+ * TODO : button with sort function to sort albums by ARTIST NAME in playlist from A to Z
  * TODO : in openFiles() instead of opening and creatingObjectURL album cover / picture from every audio file - get from the first file with track number === 01
- * TODO : add condition to check if audio / song already exists
- * TODO : simple audio element with src changing / getting from double click on any song from the lists on right pane
- * TODO : on double click on <ul> -> hide <li> elements
+ * TODO : add condition to check if audio / song already exists (maybe)
+ * TODO : add keyboard shortcuts (Play-Pause on spacebar | Next-Previous maybe Ctrl+L and Ctrl+J)
+ * TODO : change context menu (right click)
+ *
+ * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has EventListener
  */
 
 export const App = () => {
   const [activeIndex, setIndex] = React.useState(0); /* initial index set to 0 - [File] */
+  const [isPlaying, setIsPlaying] = React.useState(false); /* state to check if audio is playing */
 
   /* change current index on click */
   const handleIndex = (index: any) => {
@@ -37,8 +39,8 @@ export const App = () => {
 
     let currentTimeEl = document.getElementsByClassName("current-time")[0] as HTMLSpanElement;
     let lineProgressBar = document.querySelector(".progress-bar .line") as HTMLSpanElement;
-    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
 
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
     let progressBar = document.getElementsByClassName("progress-bar")[0] as HTMLSpanElement;
     let timestamp = document.getElementsByClassName("timestamp")[0] as HTMLSpanElement;
 
@@ -53,13 +55,18 @@ export const App = () => {
     /* for now it changes [Play - Pause] icon */
     function togglePlay() {
       /* first child of control which is - material icon */
-      if (play_pause.firstElementChild!.textContent === "play_arrow") {
-        play_pause.firstElementChild!.textContent = "pause";
-      } else {
-        play_pause.firstElementChild!.textContent = "play_arrow";
+      if (mainAudio.src && mainAudio.duration) {
+        if (isPlaying === false) {
+          setIsPlaying(true);
+          mainAudio.play();
+        } else if (isPlaying === true) {
+          setIsPlaying(false);
+          mainAudio.pause();
+        }
       }
     }
 
+    /* update progress bar line on timeupdate of mainAudio */
     function updateProgressBar() {
       currentTimeEl.textContent = convertSeconds(mainAudio.currentTime);
       let percentage = parseFloat(((mainAudio.currentTime / mainAudio.duration) * 100).toFixed(3));
@@ -79,16 +86,25 @@ export const App = () => {
         let audioSeconds = mainAudio.duration * percentage; // get current seconds / time from percentage of the full audio duration
         mainAudio.currentTime = audioSeconds;
 
-        console.log(xCord);
+        if (mainAudio.paused) {
+          setIsPlaying(true);
+          mainAudio.play();
+        }
       }
     }
 
     function progressTimestamp(this: HTMLElement, event: MouseEvent) {
       let x = event.pageX;
 
+      let totalWidth = progressBar.offsetWidth;
+      let percentage = (x - this.offsetLeft) / totalWidth;
+
       if (mainAudio.src && mainAudio.duration) {
         timestamp.style.display = "flex";
         timestamp.style.transform = `translate3d(calc(-50% + ${x}px), 0, 0)`;
+
+        let audioSeconds = mainAudio.duration * percentage;
+        timestamp.textContent = convertSeconds(audioSeconds);
       }
     }
 
@@ -197,8 +213,6 @@ export const App = () => {
        * *        <span class="song__duration" />
        *
        */
-
-      // console.table(audioFiles);
 
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
@@ -417,9 +431,14 @@ export const App = () => {
         mainAudio.src = audio.src;
         mainAudio.load();
         mainAudio.play();
+
+        setIsPlaying(true);
       } else {
         mainAudio.src = audio.src;
+        mainAudio.load();
         mainAudio.play();
+
+        setIsPlaying(true);
       }
 
       playbarDuration.textContent = convertSeconds(audio.duration);
@@ -462,7 +481,7 @@ export const App = () => {
       <LeftPane index={activeIndex} handleInputs={handleInputsClick} />
       <RightPane />
 
-      <Playbar />
+      <Playbar isPlaying={isPlaying} />
 
       <audio id="mainAudio" className="mainAudio" />
     </div>
