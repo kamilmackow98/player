@@ -176,8 +176,8 @@
         padding: 3px 5px;
         margin: 0;
 
-        &.selectedLi {
-          background-color: lighten($primary, 4%);
+        &.nowPlaying {
+          color: $nowPlaying;
         }
 
         &:hover {

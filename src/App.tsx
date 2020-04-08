@@ -441,6 +441,14 @@ export const App = () => {
         setIsPlaying(true);
       }
 
+      let previousLi = document.querySelector(".nowPlaying");
+
+      if (previousLi) {
+        previousLi.classList.remove("nowPlaying");
+      }
+
+      currentTarget.classList.add("nowPlaying");
+
       playbarDuration.textContent = convertSeconds(audio.duration);
 
       if (songName.textContent) {
@@ -462,6 +470,14 @@ export const App = () => {
     } else {
       return minutes + ":" + seconds;
     }
+  }
+
+  function playlist() {
+    let songs = [];
+
+    let audioElements = document.querySelectorAll(".song__audio");
+
+    songs.push(audioElements);
   }
 
   return (
