@@ -9,6 +9,8 @@ const Playbar = () => {
 
   return (
     <div className="playbar">
+      <span className="timestamp"></span>
+
       <div className="playbar__left-controls">
         <span className="previous">
           <i className="material-icons md-20">fast_rewind</i>

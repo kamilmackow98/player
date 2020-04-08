@@ -8,11 +8,26 @@
 
   font-family: "Roboto-Bold";
 
+  position: relative;
   color: $third;
   z-index: 10;
 
   user-select: none;
   font-size: 14px;
+
+  /* timestamp container */
+  .timestamp {
+    position: absolute;
+    height: 20px;
+    width: 40px;
+
+    left: 0px;
+    top: -20px;
+
+    display: none;
+
+    border: 1px solid red;
+  }
 }
 
 /* current time, progress and song time */

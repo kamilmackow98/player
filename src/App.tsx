@@ -39,6 +39,9 @@ export const App = () => {
     let lineProgressBar = document.querySelector(".progress-bar .line") as HTMLSpanElement;
     let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
 
+    let progressBar = document.getElementsByClassName("progress-bar")[0] as HTMLSpanElement;
+    let timestamp = document.getElementsByClassName("timestamp")[0] as HTMLSpanElement;
+
     pane_album.style.height = `${album_width_init}px`; // initialize height = same as width
 
     /* maintains aspect ratio of album cover on resizing */
@@ -64,15 +67,50 @@ export const App = () => {
       lineProgressBar.style.transform = `translate3d(${-100.2 + percentage}%, 0, 0)`;
     }
 
+    function setCurrentTime(this: HTMLElement, event: MouseEvent) {
+      /* element distance from the left of the page - distance of element from the beginning of the parent 
+      IF PARENT HAS RELATIVE POSITION add "- 100px" because of that left controls that take 100px of space */
+      let xCord = event.pageX - this.offsetLeft;
+
+      let totalWidth = progressBar.offsetWidth; // width of progress bar
+      let percentage = xCord / totalWidth;
+
+      if (mainAudio.src && mainAudio.duration) {
+        let audioSeconds = mainAudio.duration * percentage; // get current seconds / time from percentage of the full audio duration
+        mainAudio.currentTime = audioSeconds;
+
+        console.log(xCord);
+      }
+    }
+
+    function progressTimestamp(this: HTMLElement, event: MouseEvent) {
+      let x = event.pageX;
+
+      if (mainAudio.src && mainAudio.duration) {
+        timestamp.style.display = "flex";
+        timestamp.style.transform = `translate3d(calc(-50% + ${x}px), 0, 0)`;
+      }
+    }
+
+    function hideTimestamp() {
+      timestamp.style.display = "none";
+    }
+
+    progressBar.addEventListener("mouseleave", hideTimestamp);
+    progressBar.addEventListener("mousemove", progressTimestamp);
+    progressBar.addEventListener("click", setCurrentTime);
     mainAudio.addEventListener("timeupdate", updateProgressBar);
-    window.addEventListener("resize", ratio);
     play_pause.addEventListener("click", togglePlay);
+    window.addEventListener("resize", ratio);
 
     /* on component unmount - event listeners cleanup */
     return function cleanupListener() {
       window.removeEventListener("resize", ratio);
       play_pause.removeEventListener("click", togglePlay);
       mainAudio.removeEventListener("timeupdate", updateProgressBar);
+      progressBar.removeEventListener("mousemove", progressTimestamp);
+      progressBar.removeEventListener("click", setCurrentTime);
+      progressBar.removeEventListener("mouseleave", setCurrentTime);
     };
   });
 
