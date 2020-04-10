@@ -112,21 +112,48 @@ export const App = () => {
       timestamp.style.display = "none";
     }
 
-    progressBar.addEventListener("mouseleave", hideTimestamp);
+    function play() {
+      setIsPlaying(true);
+    }
+
+    function pause() {
+      setIsPlaying(false);
+    }
+
+    function spacebarToggle(event: KeyboardEvent) {
+      if (event.keyCode === 32 && mainAudio.src) {
+        event.preventDefault();
+        togglePlay();
+      }
+    }
+
+    window.addEventListener("keydown", spacebarToggle);
+
     progressBar.addEventListener("mousemove", progressTimestamp);
+    progressBar.addEventListener("mouseleave", hideTimestamp);
     progressBar.addEventListener("click", setCurrentTime);
+
     mainAudio.addEventListener("timeupdate", updateProgressBar);
+    mainAudio.addEventListener("pause", pause);
+    mainAudio.addEventListener("play", play);
+
     play_pause.addEventListener("click", togglePlay);
     window.addEventListener("resize", ratio);
 
     /* on component unmount - event listeners cleanup */
     return function cleanupListener() {
-      window.removeEventListener("resize", ratio);
-      play_pause.removeEventListener("click", togglePlay);
-      mainAudio.removeEventListener("timeupdate", updateProgressBar);
+      window.removeEventListener("keydown", spacebarToggle);
+
       progressBar.removeEventListener("mousemove", progressTimestamp);
-      progressBar.removeEventListener("click", setCurrentTime);
       progressBar.removeEventListener("mouseleave", setCurrentTime);
+      progressBar.removeEventListener("click", setCurrentTime);
+
+      mainAudio.removeEventListener("timeupdate", updateProgressBar);
+      mainAudio.removeEventListener("pause", pause);
+      mainAudio.removeEventListener("play", play);
+
+      play_pause.removeEventListener("click", togglePlay);
+      window.removeEventListener("resize", ratio);
     };
   });
 
@@ -144,7 +171,14 @@ export const App = () => {
 
   let objectUrl: string; // variable to store url objects
 
-  /* fire on change when user wants to [openFiles] */
+  interface Songs {
+    albumTitle: string;
+    liElements?: Array<HTMLLIElement>;
+  }
+
+  let songs: Array<Songs> = [];
+
+  /* fire on change when user opens files */
   function openFiles(event: ChangeEvent) {
     let rightPaneContent = document.getElementsByClassName("right-pane__content")[0]; // container with all [albums] <div>
     let allAlbumsNotUnkown = document.querySelectorAll(".album:not(.unknown)"); // get all the albums but not unknown
@@ -299,13 +333,24 @@ export const App = () => {
                   trackNbArray.sort();
 
                   let indexToAppend = trackNbArray.indexOf(trackNb);
+                  /*
+                  let albumIndex = songs
+                    .map((e) => {
+                      return e.albumTitle;
+                    })
+                    .indexOf(songAlbum);
+                    */
+
+                  // console.log(albumIndex);
 
                   if (indexToAppend === 0) {
                     ulList.insertBefore(liEl, songsList[0]);
                   } else if (songsList[indexToAppend]) {
                     ulList.insertBefore(liEl, songsList[indexToAppend]);
+                    // songs.splice(indexToAppend, 0, liEl);
                   } else {
                     ulList.appendChild(liEl);
+                    // songs.push(liEl);
                   }
                 } else {
                   /**
@@ -386,6 +431,10 @@ export const App = () => {
                   albumContainerEl.appendChild(audioUlEl);
 
                   audioUlEl.appendChild(liEl);
+
+                  songs.push({ albumTitle: songAlbum, liElements: [liEl] });
+
+                  console.log(songs);
                 }
               } else {
                 alert("Error");
@@ -472,13 +521,17 @@ export const App = () => {
     }
   }
 
-  function playlist() {
-    let songs = [];
+  /*
+  function playlist(event: ChangeEvent) {
+    // let audioElements = document.querySelectorAll(".song__audio");
+    let target = event.currentTarget as HTMLInputElement;
 
-    let audioElements = document.querySelectorAll(".song__audio");
+    console.log(target.files);
+    
+    songs.push(target.files);
 
-    songs.push(audioElements);
-  }
+    // songs.push(audioElements);
+  } */
 
   return (
     <div className="app">
@@ -486,7 +539,9 @@ export const App = () => {
 
       <input
         accept="audio/*"
-        onChange={(e) => openFiles(e)}
+        onChange={(e) => {
+          openFiles(e);
+        }}
         className="openFiles-input"
         type="file"
         multiple

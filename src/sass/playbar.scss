@@ -29,7 +29,6 @@
     border-radius: 2px;
 
     display: none;
-
   }
 }
 
@@ -62,6 +61,7 @@
 
   /* bar for entire song duration */
   .progress-bar {
+    -webkit-tap-highlight-color: transparent;
     background-color: $primary;
     height: 5px;
     width: 100%;
