@@ -25,11 +25,22 @@ import UnknownImage from "./images/unk3.png";
 export const App = () => {
   const [activeIndex, setIndex] = React.useState(0); /* initial index set to 0 - [File] */
   const [isPlaying, setIsPlaying] = React.useState(false); /* state to check if audio is playing */
+  const [isReady, setIsReady] = React.useState(false);
 
   /* change current index on click */
   const handleIndex = (index: any) => {
     setIndex(index);
   };
+
+  interface Songs {
+    albumTitle?: string;
+    liElements?: Array<HTMLLIElement>;
+  }
+
+  let songs: Array<Songs> = [];
+  let playlist: Array<HTMLLIElement> = [];
+
+  // let refSongs = React.useRef(songs);
 
   React.useEffect(() => {
     let play_pause = document.getElementsByClassName("play-pause")[0]; // play & pause control
@@ -171,13 +182,6 @@ export const App = () => {
 
   let objectUrl: string; // variable to store url objects
 
-  interface Songs {
-    albumTitle: string;
-    liElements?: Array<HTMLLIElement>;
-  }
-
-  let songs: Array<Songs> = [];
-
   /* fire on change when user opens files */
   function openFiles(event: ChangeEvent) {
     let rightPaneContent = document.getElementsByClassName("right-pane__content")[0]; // container with all [albums] <div>
@@ -247,6 +251,10 @@ export const App = () => {
        * *        <span class="song__duration" />
        *
        */
+
+      playlist = [];
+
+      setIsReady(true);
 
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
@@ -333,24 +341,27 @@ export const App = () => {
                   trackNbArray.sort();
 
                   let indexToAppend = trackNbArray.indexOf(trackNb);
-                  /*
+
                   let albumIndex = songs
                     .map((e) => {
                       return e.albumTitle;
                     })
                     .indexOf(songAlbum);
-                    */
 
-                  // console.log(albumIndex);
+                  let songsInObjects = songs[albumIndex].liElements;
 
-                  if (indexToAppend === 0) {
+                  if (indexToAppend === 0 && songsInObjects) {
                     ulList.insertBefore(liEl, songsList[0]);
-                  } else if (songsList[indexToAppend]) {
+                    songsInObjects.splice(0, 0, liEl);
+                  } else if (songsList[indexToAppend] && songsInObjects) {
                     ulList.insertBefore(liEl, songsList[indexToAppend]);
-                    // songs.splice(indexToAppend, 0, liEl);
+                    songsInObjects.splice(indexToAppend, 0, liEl);
                   } else {
                     ulList.appendChild(liEl);
-                    // songs.push(liEl);
+
+                    if (songsInObjects) {
+                      songsInObjects.push(liEl);
+                    }
                   }
                 } else {
                   /**
@@ -433,8 +444,6 @@ export const App = () => {
                   audioUlEl.appendChild(liEl);
 
                   songs.push({ albumTitle: songAlbum, liElements: [liEl] });
-
-                  console.log(songs);
                 }
               } else {
                 alert("Error");
@@ -468,6 +477,7 @@ export const App = () => {
     let currentTarget = e.currentTarget as HTMLLIElement;
 
     if (currentTarget && currentTarget.nodeName === "LI") {
+      console.log(isReady);
       let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
       let audio = currentTarget.getElementsByTagName("audio")[0];
 
@@ -475,6 +485,14 @@ export const App = () => {
 
       let songName = currentTarget.getElementsByClassName("song__title")[0];
       let artist = songName.getAttribute("data-artist");
+
+      playlist = [];
+
+      songs.forEach(function (song) {
+        playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
+      });
+
+      console.log(playlist);
 
       if (mainAudio.src) {
         mainAudio.src = audio.src;
@@ -520,18 +538,6 @@ export const App = () => {
       return minutes + ":" + seconds;
     }
   }
-
-  /*
-  function playlist(event: ChangeEvent) {
-    // let audioElements = document.querySelectorAll(".song__audio");
-    let target = event.currentTarget as HTMLInputElement;
-
-    console.log(target.files);
-    
-    songs.push(target.files);
-
-    // songs.push(audioElements);
-  } */
 
   return (
     <div className="app">
