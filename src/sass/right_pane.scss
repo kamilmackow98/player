@@ -30,6 +30,10 @@
     user-select: none;
     padding: 20px;
 
+    &.noTouching {
+      pointer-events: none;
+    }
+
     audio {
       display: none;
     }

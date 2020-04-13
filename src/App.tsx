@@ -18,29 +18,38 @@ import UnknownImage from "./images/unk3.png";
  * TODO : add condition to check if audio / song already exists (maybe)
  * TODO : add keyboard shortcuts (Play-Pause on spacebar | Next-Previous maybe Ctrl+L and Ctrl+J)
  * TODO : change context menu (right click)
+ * TODO : add li elements / audio with unknown label to the [songs] array
  *
  * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has EventListener
  */
 
+interface fileInfo {
+  trackNb: string;
+  songTitle: string;
+  songAlbum: string;
+  albumGenre: string;
+  albumYear: string;
+  artist: string;
+  picture?: any;
+  type: string;
+}
+
+interface Songs {
+  albumTitle?: string;
+  liElements?: Array<HTMLLIElement>;
+}
+
 export const App = () => {
   const [activeIndex, setIndex] = React.useState(0); /* initial index set to 0 - [File] */
   const [isPlaying, setIsPlaying] = React.useState(false); /* state to check if audio is playing */
-  const [isReady, setIsReady] = React.useState(false);
 
   /* change current index on click */
   const handleIndex = (index: any) => {
     setIndex(index);
   };
 
-  interface Songs {
-    albumTitle?: string;
-    liElements?: Array<HTMLLIElement>;
-  }
-
   let songs: Array<Songs> = [];
   let playlist: Array<HTMLLIElement> = [];
-
-  // let refSongs = React.useRef(songs);
 
   React.useEffect(() => {
     let play_pause = document.getElementsByClassName("play-pause")[0]; // play & pause control
@@ -183,11 +192,13 @@ export const App = () => {
   let objectUrl: string; // variable to store url objects
 
   /* fire on change when user opens files */
-  function openFiles(event: ChangeEvent) {
-    let rightPaneContent = document.getElementsByClassName("right-pane__content")[0]; // container with all [albums] <div>
+  async function openFiles(event: ChangeEvent): Promise<{ done: boolean }> {
+    let rightPaneContent = document.getElementsByClassName("right-pane__content")[0] as HTMLDivElement; // container with all [albums] <div>
     let allAlbumsNotUnkown = document.querySelectorAll(".album:not(.unknown)"); // get all the albums but not unknown
     let target = event.currentTarget as HTMLInputElement; // current input [openFiles]
     let audioFiles = target.files; // files from the input
+
+    rightPaneContent.classList.add("noTouching"); // prevent user from clicking too fast
 
     let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list");
     let unknownAlbum = document.querySelector(".album[data-album='unknown']");
@@ -251,10 +262,8 @@ export const App = () => {
        * *        <span class="song__duration" />
        *
        */
-
+      songs = [];
       playlist = [];
-
-      setIsReady(true);
 
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
@@ -282,180 +291,181 @@ export const App = () => {
         audioEl.setAttribute("src", objectUrl);
 
         audioEl.onloadedmetadata = function () {
-          jsmediatags.read(audioFiles![i], {
-            onSuccess: function (tag) {
-              let type = tag.type;
-              let tags = tag.tags;
+          durationEl.textContent = convertSeconds(audioEl.duration);
+        };
 
-              let songTitle = tags.title ? `${tags.title}` : `${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
-              let trackNb = tags.track ? `${tags.track.toString().match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
-              let songAlbum = tags.album ? `${tags.album}` : "Unknown";
-              let artist = tags.artist ? `${tags.artist}` : "Unknown";
-              let albumYear = tags.year ? `${tags.year}` : "Unknown";
-              let albumGenre = tags.genre ? `${tags.genre}` : "Unknown";
+        let fileInfo = await readFileInfo(audioFiles[i])
+          .then((tagInfo) => {
+            return tagInfo as fileInfo;
+          })
+          .catch((error) => {
+            alert(error);
+            return error;
+          });
 
-              let duration = audioEl.duration;
+        const { trackNb, songTitle, songAlbum, albumGenre, albumYear, artist, picture, type } = fileInfo;
 
-              liEl.setAttribute("data-track", trackNb);
-              audioEl.muted = true;
+        audioEl.muted = true;
+        liEl.setAttribute("data-track", trackNb);
+        trackEl.textContent = trackNb + ".";
+        titleEl.setAttribute("data-artist", artist);
+        titleEl.textContent = songTitle === "Unknown" ? `${audioFiles[i].name.replace(/\.[^/.]+$/, "")}` : songTitle;
 
-              durationEl.textContent = convertSeconds(duration);
-              trackEl.textContent = trackNb + ".";
+        liEl.appendChild(audioEl); // add <audio> with src
+        liEl.appendChild(trackEl); // add <span> with track number
+        liEl.appendChild(titleEl); // add <div> with title
+        liEl.appendChild(durationEl); // add <span> with duration
+        liEl.addEventListener("dblclick", handleLiClick);
 
-              titleEl.setAttribute("data-artist", artist);
-              titleEl.textContent = songTitle;
-
-              liEl.appendChild(audioEl); // add <audio> with src
-              liEl.appendChild(trackEl); // add <span> with track number
-              liEl.appendChild(titleEl); // add <div> with title
-              liEl.appendChild(durationEl); // add <span> with duration
-              liEl.addEventListener("dblclick", handleUlClick);
-
-              /* 3 options :
+        /* 3 options :
                   - song album is unknown - add to the Album with data-album="unknown" and remove .hidden class to display it
-                  - song album was already added - add song to the the existing Album with data-album="old-Album"
+                  - song album was already added - add song to the the existing Album with data-album="old-album"
                   - song album is a new one - create new Album <div> with data-album="new-album" */
 
-              if (songAlbum === "Unknown") {
-                let unknownAlbumContainer = document.querySelector(".album[data-album='unknown']");
+        /* 1st option - if [Album] is unknown */
+        if (songAlbum === "Unknown") {
+          let unknownAlbumContainer = document.querySelector(".album[data-album='unknown']");
 
-                if (unknownAlbumContainer && unknownAudioList) {
-                  unknownAlbumContainer.classList.remove("hidden");
-                  unknownAudioList.appendChild(liEl);
-                }
-              } else if (songAlbum) {
-                let albumsContainers = document.querySelector(`.album[data-album='${songAlbum}']`);
+          if (unknownAlbumContainer && unknownAudioList) {
+            unknownAlbumContainer.classList.remove("hidden");
+            unknownAudioList.appendChild(liEl);
+          }
+          /* 2 other options only if title of [Album] isn't undefined */
+        } else if (songAlbum) {
+          let albumsContainers = document.querySelector(`.album[data-album='${songAlbum}']`); // gets div with same album as the current file
 
-                if (albumsContainers) {
-                  let ulList = albumsContainers.getElementsByTagName("ul")[0];
-                  let songsList = ulList.getElementsByClassName("song");
+          /* 2nd option - if [Album] already exists */
+          if (albumsContainers) {
+            let ulList = albumsContainers.getElementsByTagName("ul")[0];
+            let songsList = ulList.getElementsByClassName("song");
 
-                  let trackNbArray = [];
+            let trackNbArray = [];
 
-                  for (let j = 0; j < songsList.length; j++) {
-                    let trackNumbers = songsList[j].getAttribute("data-track");
-                    trackNbArray.push(trackNumbers);
-                  }
+            for (let j = 0; j < songsList.length; j++) {
+              let trackNumbers = songsList[j].getAttribute("data-track");
+              trackNbArray.push(trackNumbers);
+            }
 
-                  trackNbArray.push(trackNb);
-                  trackNbArray.sort();
+            trackNbArray.push(trackNb);
+            trackNbArray.sort();
 
-                  let indexToAppend = trackNbArray.indexOf(trackNb);
+            let indexToAppend = trackNbArray.indexOf(trackNb);
 
-                  let albumIndex = songs
-                    .map((e) => {
-                      return e.albumTitle;
-                    })
-                    .indexOf(songAlbum);
+            let albumIndex = songs
+              .map((e) => {
+                return e.albumTitle;
+              })
+              .indexOf(songAlbum);
 
-                  let songsInObjects = songs[albumIndex].liElements;
+            let songsInObjects = songs[albumIndex].liElements;
 
-                  if (indexToAppend === 0 && songsInObjects) {
-                    ulList.insertBefore(liEl, songsList[0]);
-                    songsInObjects.splice(0, 0, liEl);
-                  } else if (songsList[indexToAppend] && songsInObjects) {
-                    ulList.insertBefore(liEl, songsList[indexToAppend]);
-                    songsInObjects.splice(indexToAppend, 0, liEl);
-                  } else {
-                    ulList.appendChild(liEl);
+            if (indexToAppend === 0 && songsInObjects) {
+              ulList.insertBefore(liEl, songsList[0]);
+              songsInObjects.splice(0, 0, liEl);
+            } else if (songsList[indexToAppend] && songsInObjects) {
+              ulList.insertBefore(liEl, songsList[indexToAppend]);
+              songsInObjects.splice(indexToAppend, 0, liEl);
+            } else {
+              ulList.appendChild(liEl);
 
-                    if (songsInObjects) {
-                      songsInObjects.push(liEl);
-                    }
-                  }
-                } else {
-                  /**
-                   * * Create DOM elements
-                   */
-
-                  const albumContainerEl = document.createElement("div");
-
-                  const albumInfoEl = document.createElement("div");
-
-                  const albumImageEl = document.createElement("img");
-                  const bandNameEl = document.createElement("div");
-                  const albumTitleEl = document.createElement("div");
-                  const albumGenreEl = document.createElement("span");
-
-                  const titleDivEl = document.createElement("div");
-                  const titleLineEl = document.createElement("span");
-                  const albumYearEl = document.createElement("span");
-
-                  const audioUlEl = document.createElement("ul");
-
-                  /**
-                   * * Set classes
-                   */
-
-                  albumContainerEl.classList.add("album");
-                  albumInfoEl.classList.add("album__info");
-                  albumImageEl.classList.add("album__cover");
-                  bandNameEl.classList.add("band__name");
-                  albumTitleEl.classList.add("album__title");
-                  albumGenreEl.classList.add("album__genre");
-                  titleDivEl.classList.add("title");
-                  titleLineEl.classList.add("line");
-                  albumYearEl.classList.add("album__year");
-                  audioUlEl.classList.add("audio__list");
-
-                  /**
-                   * * Set attributes and data
-                   */
-
-                  if (tags.picture) {
-                    const byteArray = new Uint8Array(tags.picture.data);
-                    const blob = new Blob([byteArray], { type });
-                    const albumArtUrl = URL.createObjectURL(blob);
-                    albumImageEl.src = albumArtUrl;
-                    // albumImageEl.onload = function() {
-                    //    URL.revokeObjectURL(albumArtUrl);
-                    // }
-                  } else {
-                    albumImageEl.classList.add("noAlbumCover");
-                    albumImageEl.src = UnknownImage;
-                  }
-
-                  albumContainerEl.setAttribute("data-album", songAlbum);
-                  bandNameEl.textContent = artist;
-                  titleDivEl.textContent = songAlbum;
-                  albumYearEl.textContent = albumYear;
-                  albumGenreEl.textContent = albumGenre;
-                  albumInfoEl.addEventListener("dblclick", displayHideList);
-
-                  /**
-                   * * Append elements
-                   */
-
-                  rightPaneContent.appendChild(albumContainerEl);
-                  albumContainerEl.appendChild(albumInfoEl);
-
-                  albumInfoEl.appendChild(albumImageEl);
-                  albumInfoEl.appendChild(bandNameEl);
-                  albumInfoEl.appendChild(albumTitleEl);
-
-                  albumTitleEl.appendChild(titleDivEl);
-                  albumTitleEl.appendChild(titleLineEl);
-                  albumTitleEl.appendChild(albumYearEl);
-
-                  albumInfoEl.appendChild(albumGenreEl);
-
-                  albumContainerEl.appendChild(audioUlEl);
-
-                  audioUlEl.appendChild(liEl);
-
-                  songs.push({ albumTitle: songAlbum, liElements: [liEl] });
-                }
-              } else {
-                alert("Error");
+              if (songsInObjects) {
+                songsInObjects.push(liEl);
               }
-            },
-            onError: function (error) {
-              alert("Something went wrong " + error.info + " " + error.type);
-            },
-          });
-        };
+            }
+          } else {
+            /* 3rd option - create new [Album] since it's neither Unknown neither existing already */
+
+            /**
+             * * Create DOM elements
+             */
+
+            const albumContainerEl = document.createElement("div");
+
+            const albumInfoEl = document.createElement("div");
+
+            const albumImageEl = document.createElement("img");
+            const bandNameEl = document.createElement("div");
+            const albumTitleEl = document.createElement("div");
+            const albumGenreEl = document.createElement("span");
+
+            const titleDivEl = document.createElement("div");
+            const titleLineEl = document.createElement("span");
+            const albumYearEl = document.createElement("span");
+
+            const audioUlEl = document.createElement("ul");
+
+            /**
+             * * Set classes
+             */
+
+            albumContainerEl.classList.add("album");
+            albumInfoEl.classList.add("album__info");
+            albumImageEl.classList.add("album__cover");
+            bandNameEl.classList.add("band__name");
+            albumTitleEl.classList.add("album__title");
+            albumGenreEl.classList.add("album__genre");
+            titleDivEl.classList.add("title");
+            titleLineEl.classList.add("line");
+            albumYearEl.classList.add("album__year");
+            audioUlEl.classList.add("audio__list");
+
+            /**
+             * * Set attributes and data
+             */
+
+            if (picture) {
+              const byteArray = new Uint8Array(picture.data);
+              const blob = new Blob([byteArray], { type });
+              const albumArtUrl = URL.createObjectURL(blob);
+              albumImageEl.src = albumArtUrl;
+              // albumImageEl.onload = function() {
+              //    URL.revokeObjectURL(albumArtUrl);
+              // }
+            } else {
+              albumImageEl.classList.add("noAlbumCover");
+              albumImageEl.src = UnknownImage;
+            }
+
+            albumContainerEl.setAttribute("data-album", songAlbum);
+            bandNameEl.textContent = artist;
+            titleDivEl.textContent = songAlbum;
+            albumYearEl.textContent = albumYear;
+            albumGenreEl.textContent = albumGenre;
+            albumInfoEl.addEventListener("dblclick", displayHideList);
+
+            /**
+             * * Append elements
+             */
+
+            rightPaneContent.appendChild(albumContainerEl);
+            albumContainerEl.appendChild(albumInfoEl);
+
+            albumInfoEl.appendChild(albumImageEl);
+            albumInfoEl.appendChild(bandNameEl);
+            albumInfoEl.appendChild(albumTitleEl);
+
+            albumTitleEl.appendChild(titleDivEl);
+            albumTitleEl.appendChild(titleLineEl);
+            albumTitleEl.appendChild(albumYearEl);
+
+            albumInfoEl.appendChild(albumGenreEl);
+
+            albumContainerEl.appendChild(audioUlEl);
+
+            audioUlEl.appendChild(liEl);
+
+            /* add to the array of LiElements with songs */
+            songs.push({ albumTitle: songAlbum, liElements: [liEl] });
+          }
+        } else {
+          alert("Error. Something went wrong");
+        }
       }
     }
+    return new Promise((resolve, reject) => {
+      resolve({ done: true });
+      reject({ error: "Something went wrong" });
+    });
   }
 
   function displayHideList(e: MouseEvent) {
@@ -473,11 +483,10 @@ export const App = () => {
     }
   }
 
-  function handleUlClick(e: MouseEvent) {
+  function handleLiClick(e: MouseEvent) {
     let currentTarget = e.currentTarget as HTMLLIElement;
 
     if (currentTarget && currentTarget.nodeName === "LI") {
-      console.log(isReady);
       let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
       let audio = currentTarget.getElementsByTagName("audio")[0];
 
@@ -485,14 +494,6 @@ export const App = () => {
 
       let songName = currentTarget.getElementsByClassName("song__title")[0];
       let artist = songName.getAttribute("data-artist");
-
-      playlist = [];
-
-      songs.forEach(function (song) {
-        playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
-      });
-
-      console.log(playlist);
 
       if (mainAudio.src) {
         mainAudio.src = audio.src;
@@ -521,7 +522,58 @@ export const App = () => {
       if (songName.textContent) {
         document.title = artist + " - " + songName.textContent;
       }
+
+      console.log(songs);
+
+      playlist = [];
+
+      songs.forEach(function (song) {
+        playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
+      });
+
+      for (let i = 0; i < playlist.length; i++) {
+        if (playlist[i].classList.contains("nowPlaying")) {
+          console.log(playlist.indexOf(playlist[i]));
+        }
+      }
     }
+  }
+
+  function readFileInfo(file: File) {
+    return new Promise((resolve, reject) => {
+      jsmediatags.read(file, {
+        onSuccess: function (tag) {
+          let type = tag.type;
+          let tags = tag.tags;
+
+          let trackNb = tags.track ? `${tags.track.toString().match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
+          let songTitle = tags.title ? `${tags.title}` : "Unknown"; //`${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
+          let songAlbum = tags.album ? `${tags.album}` : "Unknown";
+
+          let albumGenre = tags.genre ? `${tags.genre}` : "Unknown";
+          let albumYear = tags.year ? `${tags.year}` : "Unknown";
+
+          let artist = tags.artist ? `${tags.artist}` : "Unknown";
+          let picture = tags.picture;
+
+          let infoObject: fileInfo = {
+            trackNb: trackNb,
+            songTitle: songTitle,
+            songAlbum: songAlbum,
+            albumGenre: albumGenre,
+            albumYear: albumYear,
+            artist: artist,
+            picture: picture,
+            type: type,
+          };
+
+          resolve(infoObject);
+        },
+        onError: function (error) {
+          reject(error.info + error.type);
+        },
+      });
+    });
   }
 
   function convertSeconds(duration: number) {
@@ -539,6 +591,25 @@ export const App = () => {
     }
   }
 
+  async function inputOpen(event: ChangeEvent) {
+    await openFiles(event)
+      .then((isDone) => {
+        if (isDone) {
+          let rightPaneContent = document.querySelector(".right-pane__content") as HTMLDivElement;
+          rightPaneContent.classList.remove("noTouching");
+
+          songs.forEach(function (song) {
+            playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
+          });
+
+          // console.log(playlist);
+        }
+      })
+      .catch((error) => {
+        alert(error);
+      });
+  }
+
   return (
     <div className="app">
       <Navbar handleClick={handleIndex} activeIndex={activeIndex} />
@@ -546,7 +617,7 @@ export const App = () => {
       <input
         accept="audio/*"
         onChange={(e) => {
-          openFiles(e);
+          inputOpen(e);
         }}
         className="openFiles-input"
         type="file"
