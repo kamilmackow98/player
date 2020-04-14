@@ -2,6 +2,8 @@ import React, { MouseEvent } from "react";
 
 interface Props {
   isPlaying: boolean;
+  previous: Function;
+  next: Function;
 }
 
 const Playbar = (props: Props) => {
@@ -16,13 +18,13 @@ const Playbar = (props: Props) => {
       <span className="timestamp"></span>
 
       <div className="playbar__left-controls">
-        <span className="previous">
+        <span className="previous" onClick={(e) => {props.previous(e)}}>
           <i className="material-icons md-20">fast_rewind</i>
         </span>
         <span className="play-pause">
           <i className="material-icons md-20">{props.isPlaying ? "pause" : "play_arrow"}</i>
         </span>
-        <span className="next">
+        <span className="next" onClick={(e) => {props.next(e)}}>
           <i className="material-icons md-20">fast_forward</i>
         </span>
       </div>

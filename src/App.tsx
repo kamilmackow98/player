@@ -17,8 +17,7 @@ import UnknownImage from "./images/unk3.png";
  * TODO : in openFiles() instead of opening and creatingObjectURL album cover / picture from every audio file - get from the first file with track number === 01
  * TODO : add condition to check if audio / song already exists (maybe)
  * TODO : add keyboard shortcuts (Play-Pause on spacebar | Next-Previous maybe Ctrl+L and Ctrl+J)
- * TODO : change context menu (right click)
- * TODO : add li elements / audio with unknown label to the [songs] array
+ * TODO : change context menu (right click) AND prevent F12 or global right click
  *
  * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has EventListener
  */
@@ -39,17 +38,21 @@ interface Songs {
   liElements?: Array<HTMLLIElement>;
 }
 
+/* important to put before const App otherwise with each render will reset the items */
+let songs: Array<Songs> = [];
+let playlist: Array<HTMLLIElement> = [];
+
 export const App = () => {
   const [activeIndex, setIndex] = React.useState(0); /* initial index set to 0 - [File] */
   const [isPlaying, setIsPlaying] = React.useState(false); /* state to check if audio is playing */
+
+  let isPlayingRef = React.useRef<boolean>();
+  isPlayingRef.current = isPlaying;
 
   /* change current index on click */
   const handleIndex = (index: any) => {
     setIndex(index);
   };
-
-  let songs: Array<Songs> = [];
-  let playlist: Array<HTMLLIElement> = [];
 
   React.useEffect(() => {
     let play_pause = document.getElementsByClassName("play-pause")[0]; // play & pause control
@@ -197,10 +200,10 @@ export const App = () => {
     let allAlbumsNotUnkown = document.querySelectorAll(".album:not(.unknown)"); // get all the albums but not unknown
     let target = event.currentTarget as HTMLInputElement; // current input [openFiles]
     let audioFiles = target.files; // files from the input
+    let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list");
 
     rightPaneContent.classList.add("noTouching"); // prevent user from clicking too fast
 
-    let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list");
     let unknownAlbum = document.querySelector(".album[data-album='unknown']");
 
     if (unknownAudioList && unknownAlbum) {
@@ -233,6 +236,9 @@ export const App = () => {
       }
     }
 
+    songs = [];
+    playlist = [];
+
     /* checks if any file was selected or not */
     if (!audioFiles || !audioFiles.length) {
       alert("No files selected");
@@ -262,8 +268,6 @@ export const App = () => {
        * *        <span class="song__duration" />
        *
        */
-      songs = [];
-      playlist = [];
 
       for (let i = 0; i < audioFiles.length; i++) {
         /* for each audio file */
@@ -299,7 +303,7 @@ export const App = () => {
             return tagInfo as fileInfo;
           })
           .catch((error) => {
-            alert(error);
+            console.log(error);
             return error;
           });
 
@@ -330,6 +334,24 @@ export const App = () => {
             unknownAlbumContainer.classList.remove("hidden");
             unknownAudioList.appendChild(liEl);
           }
+
+          if (songs.length) {
+            let indexToAppendUnknown = songs
+              .map((e) => {
+                return e.albumTitle;
+              })
+              .indexOf("Unknown");
+
+            if (indexToAppendUnknown === -1) {
+              songs.unshift({ albumTitle: "Unknown", liElements: [liEl] });
+            } else {
+              let unknownSongs = songs[indexToAppendUnknown].liElements as Array<HTMLLIElement>;
+              unknownSongs.push(liEl);
+            }
+          } else {
+            songs.push({ albumTitle: "Unknown", liElements: [liEl] });
+          }
+
           /* 2 other options only if title of [Album] isn't undefined */
         } else if (songAlbum) {
           let albumsContainers = document.querySelector(`.album[data-album='${songAlbum}']`); // gets div with same album as the current file
@@ -523,8 +545,7 @@ export const App = () => {
         document.title = artist + " - " + songName.textContent;
       }
 
-      console.log(songs);
-
+      /*
       playlist = [];
 
       songs.forEach(function (song) {
@@ -536,6 +557,8 @@ export const App = () => {
           console.log(playlist.indexOf(playlist[i]));
         }
       }
+
+      */
     }
   }
 
@@ -601,13 +624,85 @@ export const App = () => {
           songs.forEach(function (song) {
             playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
           });
-
-          // console.log(playlist);
         }
       })
       .catch((error) => {
-        alert(error);
+        console.log(error);
       });
+  }
+
+  async function inputAdd(event: ChangeEvent) {
+    let songsExist = document.querySelectorAll(".song");
+
+    if (!songsExist.length) {
+      inputOpen(event);
+    } else {
+      console.log(songsExist);
+    }
+  }
+
+  React.useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  function previous(event: MouseEvent) {
+    if (playlist.length > 0) {
+      //
+      if (isPlayingRef.current) {
+        console.log(playlist);
+        let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
+
+        let indexOfPlaying = playlist.indexOf(currentPlaying);
+
+        if (indexOfPlaying === 0) {
+          console.log("index is 0");
+        } else {
+          let previousToPlay = playlist[indexOfPlaying - 1];
+          let audioFromPrev = previousToPlay.getElementsByTagName("audio")[0];
+
+          let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
+
+          console.log(audioFromPrev);
+
+          mainAudio.src = audioFromPrev.src;
+          mainAudio.load();
+          mainAudio.play();
+
+          currentPlaying.classList.remove("nowPlaying");
+          previousToPlay.classList.add("nowPlaying");
+        }
+      }
+    }
+  }
+
+  function next(event: MouseEvent) {
+    if (playlist.length > 0) {
+      //
+      if (isPlayingRef.current) {
+        console.log(playlist);
+        let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
+
+        let indexOfPlaying = playlist.indexOf(currentPlaying);
+
+        if (indexOfPlaying === playlist.length - 1) {
+          console.log("end of playlist");
+        } else {
+          let nextToPlay = playlist[indexOfPlaying + 1];
+          let audioFromPrev = nextToPlay.getElementsByTagName("audio")[0];
+
+          let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
+
+          console.log(audioFromPrev);
+
+          mainAudio.src = audioFromPrev.src;
+          mainAudio.load();
+          mainAudio.play();
+
+          currentPlaying.classList.remove("nowPlaying");
+          nextToPlay.classList.add("nowPlaying");
+        }
+      }
+    }
   }
 
   return (
@@ -624,12 +719,21 @@ export const App = () => {
         multiple
         ref={openInput_ref}
       />
-      <input accept="audio/*" className="addFiles-input" type="file" multiple ref={addInput_ref} />
+      <input
+        accept="audio/*"
+        onChange={(e) => {
+          inputAdd(e);
+        }}
+        className="addFiles-input"
+        type="file"
+        multiple
+        ref={addInput_ref}
+      />
 
       <LeftPane index={activeIndex} handleInputs={handleInputsClick} />
       <RightPane />
 
-      <Playbar isPlaying={isPlaying} />
+      <Playbar isPlaying={isPlaying} previous={previous} next={next} />
 
       <audio id="mainAudio" className="mainAudio" />
     </div>
