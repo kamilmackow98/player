@@ -645,11 +645,10 @@ export const App = () => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
-  function previous(event: MouseEvent) {
+  function previous() {
     if (playlist.length > 0) {
       //
       if (isPlayingRef.current) {
-        console.log(playlist);
         let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
 
         let indexOfPlaying = playlist.indexOf(currentPlaying);
@@ -658,50 +657,69 @@ export const App = () => {
           console.log("index is 0");
         } else {
           let previousToPlay = playlist[indexOfPlaying - 1];
-          let audioFromPrev = previousToPlay.getElementsByTagName("audio")[0];
+          let previousAudio = previousToPlay.getElementsByTagName("audio")[0];
 
           let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
 
-          console.log(audioFromPrev);
-
-          mainAudio.src = audioFromPrev.src;
-          mainAudio.load();
-          mainAudio.play();
-
-          currentPlaying.classList.remove("nowPlaying");
-          previousToPlay.classList.add("nowPlaying");
+          playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousToPlay);
         }
       }
     }
   }
 
-  function next(event: MouseEvent) {
+  function next() {
     if (playlist.length > 0) {
       //
-      if (isPlayingRef.current) {
-        console.log(playlist);
-        let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
+      // if (isPlayingRef.current) {
+      let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
 
-        let indexOfPlaying = playlist.indexOf(currentPlaying);
+      let indexOfPlaying = playlist.indexOf(currentPlaying);
 
-        if (indexOfPlaying === playlist.length - 1) {
-          console.log("end of playlist");
-        } else {
-          let nextToPlay = playlist[indexOfPlaying + 1];
-          let audioFromPrev = nextToPlay.getElementsByTagName("audio")[0];
+      if (indexOfPlaying === playlist.length - 1) {
+        console.log("end of playlist");
+      } else {
+        let nextToPlay = playlist[indexOfPlaying + 1];
+        let nextAudio = nextToPlay.getElementsByTagName("audio")[0];
 
-          let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
+        let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
 
-          console.log(audioFromPrev);
-
-          mainAudio.src = audioFromPrev.src;
-          mainAudio.load();
-          mainAudio.play();
-
-          currentPlaying.classList.remove("nowPlaying");
-          nextToPlay.classList.add("nowPlaying");
-        }
+        playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextToPlay);
       }
+    }
+  }
+
+  function playNextOrPrevious(
+    mainAudio: HTMLAudioElement,
+    nextPrevAudio: HTMLAudioElement,
+    curPlayingEl: HTMLLIElement,
+    nextOrPrevEl: HTMLLIElement
+  ) {
+    let playPromise = mainAudio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then((_) => {
+          let playbarDuration = document.getElementsByClassName("duration")[0];
+
+          mainAudio.src = nextPrevAudio.src;
+          mainAudio.load();
+
+          playbarDuration.textContent = convertSeconds(nextPrevAudio.duration);
+
+          curPlayingEl.classList.remove("nowPlaying");
+          nextOrPrevEl.classList.add("nowPlaying");
+          if (playPromise !== undefined) {
+            playPromise
+              .then((_) => {
+                mainAudio.play();
+              })
+              .catch((error) => {
+                alert("Something went wrong " + error);
+              });
+          }
+        })
+        .catch((error) => {
+          alert("sSomething went wrong " + error);
+        });
     }
   }
 
@@ -735,7 +753,7 @@ export const App = () => {
 
       <Playbar isPlaying={isPlaying} previous={previous} next={next} />
 
-      <audio id="mainAudio" className="mainAudio" />
+      <audio id="mainAudio" className="mainAudio" onEnded={next} />
     </div>
   );
 };
