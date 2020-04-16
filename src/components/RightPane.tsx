@@ -1,5 +1,5 @@
 import React from "react";
-import unknown from "../images/unk3.png";
+import unknown from "../images/unknown.png";
 
 const RightPane = () => {
   return (

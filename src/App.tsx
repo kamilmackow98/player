@@ -2,11 +2,12 @@ import RightPane from "./components/RightPane";
 import LeftPane from "./components/LeftPane";
 import Playbar from "./components/Playbar";
 import Navbar from "./components/Navbar";
+
 import React, { ChangeEvent } from "react";
 import jsmediatags from "jsmediatags";
-import "./sass/app.scss";
 
-import UnknownImage from "./images/unk3.png";
+import UnknownImage from "./images/unknown.png";
+import "./sass/app.scss";
 
 /**
  * TODO : add color text + icons in panes as the variable theme ($third variable)
@@ -18,6 +19,7 @@ import UnknownImage from "./images/unk3.png";
  * TODO : add condition to check if audio / song already exists (maybe)
  * TODO : add keyboard shortcuts (Play-Pause on spacebar | Next-Previous maybe Ctrl+L and Ctrl+J)
  * TODO : change context menu (right click) AND prevent F12 or global right click
+ * TODO : add EventListener to hide list of UnknownAlbum
  *
  * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has EventListener
  */
@@ -38,22 +40,54 @@ interface Songs {
   liElements?: Array<HTMLLIElement>;
 }
 
-/* important to put before const App otherwise with each render will reset the items */
+/* needed to be put before const App otherwise with each render will reset the variable */
 let songs: Array<Songs> = [];
 let playlist: Array<HTMLLIElement> = [];
 
 export const App = () => {
-  const [activeIndex, setIndex] = React.useState(0); /* initial index set to 0 - [File] */
-  const [isPlaying, setIsPlaying] = React.useState(false); /* state to check if audio is playing */
+  const [activeIndex, setIndex] = React.useState(0); // initial index set to 0 - File Tab
+  const [isPlaying, setIsPlaying] = React.useState(false); // state to check if audio is playing
+  const [isMuted, setIsMuted] = React.useState(false); // state to check if main audio is muted
 
-  let isPlayingRef = React.useRef<boolean>();
-  isPlayingRef.current = isPlaying;
+  const openInput_ref = React.useRef<HTMLInputElement>(null); // input to open new files
+  const addInput_ref = React.useRef<HTMLInputElement>(null); // input to add files to the playlist
 
-  /* change current index on click */
-  const handleIndex = (index: any) => {
+  let objectUrl: string; // variable to store url objects
+
+  /* -------------------------------------------- */
+  /* --------| simply changes the index |-------- */
+  /* -------------------------------------------- */
+  const handleIndex = (index: number) => {
     setIndex(index);
   };
 
+  function muteAudio() {
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
+
+    if (!mainAudio.muted) {
+      mainAudio.muted = true;
+      setIsMuted(true);
+    } else {
+      mainAudio.muted = false;
+      setIsMuted(false);
+    }
+  }
+
+  /* --------------------------------------------------- */
+  /* --------| simulates mouse click on inputs |-------- */
+  /* --------------------------------------------------- */
+  function handleInputsClick(event: React.MouseEvent) {
+    /* checks first which button is clicked then simulates mouse click on input */
+    if (event.currentTarget.classList.contains("open-files") && openInput_ref.current) {
+      openInput_ref.current.click();
+    } else if (event.currentTarget.classList.contains("add-files") && addInput_ref.current) {
+      addInput_ref.current.click();
+    }
+  }
+
+  /* ------------------------------------------------------ */
+  /* --------| Main useEffect with some functions |-------- */
+  /* ------------------------------------------------------ */
   React.useEffect(() => {
     let play_pause = document.getElementsByClassName("play-pause")[0]; // play & pause control
 
@@ -179,20 +213,6 @@ export const App = () => {
       window.removeEventListener("resize", ratio);
     };
   });
-
-  const openInput_ref = React.useRef<HTMLInputElement>(null); // input to open new files
-  const addInput_ref = React.useRef<HTMLInputElement>(null); // input to add files to existing / current playlist
-
-  /* fires click and opens window to select files */
-  function handleInputsClick(e: React.MouseEvent) {
-    if (e.currentTarget.classList.contains("open-files")) {
-      openInput_ref.current!.click();
-    } else if (e.currentTarget.classList.contains("add-files")) {
-      addInput_ref.current!.click();
-    }
-  }
-
-  let objectUrl: string; // variable to store url objects
 
   /* fire on change when user opens files */
   async function openFiles(event: ChangeEvent): Promise<{ done: boolean }> {
@@ -490,13 +510,192 @@ export const App = () => {
     });
   }
 
-  function displayHideList(e: MouseEvent) {
-    let currentTarget = e.currentTarget as HTMLDivElement;
-    let audioList = currentTarget.nextElementSibling;
+  /* --------------------------------------------------------- */
+  /* --------| Fires when clicked on [Open files...] |-------- */
+  /* --------------------------------------------------------- */
+  async function inputOpen(event: ChangeEvent) {
+    /* executes openFiles() and waits for it to be done */
+    await openFiles(event)
+      .then((isDone) => {
+        if (isDone) {
+          /* when Promise resolved and openFiles() is done
+          removes class added in openFiles() that 
+          prevents user to click any <li> before it's fully executed */
+          let rightPaneContent = document.querySelector(".right-pane__content") as HTMLDivElement;
+          rightPaneContent.classList.remove("noTouching");
 
-    if (!audioList) {
-      alert("It appears that list is gone, what have you done");
+          /* gets every <li> element from Array[Songs] (and only <li>)
+          and puts them in Array[Playlist] in same order as in [Songs] */
+          songs.forEach(function (song) {
+            playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
+          });
+        }
+      })
+      .catch((error) => {
+        alert("Something went wrong " + error);
+        console.log(error);
+      });
+  }
+
+  /* -------------------------------------------------------- */
+  /* --------| Fires when clicked on [Add files...] |-------- */
+  /* -------------------------------------------------------- */
+  async function inputAdd(event: ChangeEvent) {
+    let songsDOM = document.querySelectorAll(".song"); // gets every <li class="song">
+
+    /* if there's no songs in DOM - will execute as if user clicked on [Open files...]
+       otherwise executes addFiles() and waits for it to be done */
+    if (!songsDOM.length) {
+      inputOpen(event);
     } else {
+      console.log(songsDOM);
+    }
+  }
+
+  /* ----------------------------------------------------- */
+  /* --------| Play Previous audio from playlist |-------- */
+  /* ----------------------------------------------------- */
+  function previous() {
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement; // main <audio>
+
+    /* if playlist contains audios and any song is already loaded */
+    if (playlist.length > 0 && mainAudio.src) {
+      let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
+      let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
+
+      /* if reaches beginning of the playlist plays the last audio
+         otherwise plays previous audio from the playlsit */
+      if (indexOfCurrent === 0) {
+        console.log("index is 0");
+      } else {
+        let previousIndex = playlist[indexOfCurrent - 1]; // gets previous index (current - 1)
+        let previousAudio = previousIndex.getElementsByTagName("audio")[0]; // retrieves previous audio from playlist
+
+        playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
+      }
+    }
+  }
+
+  /* ------------------------------------------------- */
+  /* --------| Play Next audio from playlist |-------- */
+  /* ------------------------------------------------- */
+  function next() {
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement; // main <audio>
+
+    /* if playlist contains audios and any song is already loaded */
+    if (playlist.length > 0 && mainAudio.src) {
+      let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
+      let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
+
+      /* if reaches end of the playlist plays the first audio
+         otherwise plays next audio from the playlsit */
+      if (indexOfCurrent === playlist.length - 1) {
+        console.log("end of playlist");
+      } else {
+        let nextIndex = playlist[indexOfCurrent + 1]; // gets next index (current + 1)
+        let nextAudio = nextIndex.getElementsByTagName("audio")[0]; // retrieves next audio from playlist
+
+        playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
+      }
+    }
+  }
+
+  /* ----------------------------------------------------------- */
+  /* --------| Checks if prev/next audio can be played |-------- */
+  /* -----------| and loads media then plays audio |------------ */
+  /* ----------------------------------------------------------- */
+  function playNextOrPrevious(
+    mainAudio: HTMLAudioElement,
+    nextPrevAudio: HTMLAudioElement,
+    curPlayingEl: HTMLLIElement,
+    nextOrPrevEl: HTMLLIElement
+  ) {
+    /* since play() returns a promise - first checks if promise isn't undefined so it can load media
+       then checks again if it can actually play the loaded src */
+    let playPromise = mainAudio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then((_) => {
+          let playbarDuration = document.getElementsByClassName("duration")[0]; // duration element in the App
+
+          /* update audio duration for prev/next 
+             update audio src from prev/next and load it */
+          playbarDuration.textContent = convertSeconds(nextPrevAudio.duration);
+          mainAudio.src = nextPrevAudio.src;
+          mainAudio.load();
+
+          /* remove indicator from current playing and add to the prev/next */
+          curPlayingEl.classList.remove("nowPlaying");
+          nextOrPrevEl.classList.add("nowPlaying");
+
+          if (playPromise !== undefined) {
+            playPromise
+              .then((_) => {
+                mainAudio.play();
+              })
+              .catch((error) => {
+                alert("Something went wrong " + error);
+                console.log(error);
+              });
+          }
+        })
+        .catch((error) => {
+          alert("Something went wrong " + error);
+          console.log(error);
+        });
+    }
+  }
+
+  /* ------------------------------------------------------------- */
+  /* --------| Plays selected audio from <li> on dbClick |-------- */
+  /* ------------------------------------------------------------- */
+  function handleLiClick(event: MouseEvent) {
+    let currentTarget = event.currentTarget as HTMLLIElement; // currentTarget so only <li> no child elements
+
+    /* only fires when <li> is dbClicked */
+    if (currentTarget && currentTarget.nodeName === "LI") {
+      let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement; // gets main <audio>
+      let playbarDuration = document.getElementsByClassName("duration")[0]; // gets duration element
+      let previousLi = document.querySelector(".nowPlaying"); // gets
+
+      let currentAudio = currentTarget.getElementsByTagName("audio")[0]; // gets <audio> from selected <li> element
+      let songName = currentTarget.getElementsByClassName("song__title")[0]; // gets <div> with song name
+      let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+      mainAudio.src = currentAudio.src; // gets src from selected audio
+      mainAudio.load(); // loads the audio
+
+      let playPromise = mainAudio.play();
+
+      /* checks if promise isn't undefined after new src load and then plays audio */
+      if (playPromise !== undefined) {
+        playPromise.then((_) => {
+          mainAudio.play();
+          setIsPlaying(true);
+        });
+      }
+
+      /* removes indicator from previous <li> selection if there is any */
+      if (previousLi) {
+        previousLi.classList.remove("nowPlaying");
+      }
+
+      playbarDuration.textContent = convertSeconds(currentAudio.duration); // sets current duration in DOM
+      currentTarget.classList.add("nowPlaying"); // adds indicator on current <li>
+
+      document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+    }
+  }
+
+  /* -------------------------------------------------- */
+  /* --------| Hides or shows <ul> on dbClick |-------- */
+  /* -------------------------------------------------- */
+  function displayHideList(event: MouseEvent) {
+    let currentTarget = event.currentTarget as HTMLDivElement; // <div class="album__info">
+    let audioList = currentTarget.nextElementSibling; // <ul> is the next sibling element
+
+    /* toggle class to Hide | Show <ul> */
+    if (audioList) {
       if (audioList.classList.contains("hidden")) {
         audioList.classList.remove("hidden");
       } else {
@@ -505,63 +704,9 @@ export const App = () => {
     }
   }
 
-  function handleLiClick(e: MouseEvent) {
-    let currentTarget = e.currentTarget as HTMLLIElement;
-
-    if (currentTarget && currentTarget.nodeName === "LI") {
-      let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
-      let audio = currentTarget.getElementsByTagName("audio")[0];
-
-      let playbarDuration = document.getElementsByClassName("duration")[0];
-
-      let songName = currentTarget.getElementsByClassName("song__title")[0];
-      let artist = songName.getAttribute("data-artist");
-
-      if (mainAudio.src) {
-        mainAudio.src = audio.src;
-        mainAudio.load();
-        mainAudio.play();
-
-        setIsPlaying(true);
-      } else {
-        mainAudio.src = audio.src;
-        mainAudio.load();
-        mainAudio.play();
-
-        setIsPlaying(true);
-      }
-
-      let previousLi = document.querySelector(".nowPlaying");
-
-      if (previousLi) {
-        previousLi.classList.remove("nowPlaying");
-      }
-
-      currentTarget.classList.add("nowPlaying");
-
-      playbarDuration.textContent = convertSeconds(audio.duration);
-
-      if (songName.textContent) {
-        document.title = artist + " - " + songName.textContent;
-      }
-
-      /*
-      playlist = [];
-
-      songs.forEach(function (song) {
-        playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
-      });
-
-      for (let i = 0; i < playlist.length; i++) {
-        if (playlist[i].classList.contains("nowPlaying")) {
-          console.log(playlist.indexOf(playlist[i]));
-        }
-      }
-
-      */
-    }
-  }
-
+  /* -------------------------------------------------------------------------- */
+  /* --------| Reads info from media file (track, artist, album etc.) |-------- */
+  /* -------------------------------------------------------------------------- */
   function readFileInfo(file: File) {
     return new Promise((resolve, reject) => {
       jsmediatags.read(file, {
@@ -569,17 +714,22 @@ export const App = () => {
           let type = tag.type;
           let tags = tag.tags;
 
-          let trackNb = tags.track ? `${tags.track.toString().match(/[^/]+/)}`.padStart(2, "0") : "01"; // if track number undefined puts 01 otherwise takes only string before "/" if there's any and if string doesn't have at least 2 numbers then adds leading zero
-          let songTitle = tags.title ? `${tags.title}` : "Unknown"; //`${audioFiles![i].name.replace(/\.[^/.]+$/, "")}`; // if title undefined take file name and replace extension by empty string
+          /* checks for every info if exists otherwise sets it to "Unknown" */
+          /* if track number is undefined sets track number as 01 insted
+          otherwise takes only track number before "/" if there's any slash
+          and if string has only 1 digit then adds leading zero */
+          /* picture's type isn't a string so if it's undefined 
+          it will be replaced later by default image */
+          let trackNb = tags.track ? `${tags.track.toString().match(/[^/]+/)}`.padStart(2, "0") : "01";
+          let songTitle = tags.title ? `${tags.title}` : "Unknown";
           let songAlbum = tags.album ? `${tags.album}` : "Unknown";
-
           let albumGenre = tags.genre ? `${tags.genre}` : "Unknown";
           let albumYear = tags.year ? `${tags.year}` : "Unknown";
-
           let artist = tags.artist ? `${tags.artist}` : "Unknown";
           let picture = tags.picture;
 
-          let infoObject: fileInfo = {
+          /* creates fileInfo object */
+          let mediaInfo: fileInfo = {
             trackNb: trackNb,
             songTitle: songTitle,
             songAlbum: songAlbum,
@@ -590,136 +740,35 @@ export const App = () => {
             type: type,
           };
 
-          resolve(infoObject);
+          /* onSucces returns object with info from media file */
+          resolve(mediaInfo);
         },
         onError: function (error) {
-          reject(error.info + error.type);
+          reject("Error in JSMediaTags \nError info: " + error.info + "\nError type: " + error.type);
         },
       });
     });
   }
 
+  /* -------------------------------------------------------------- */
+  /* --------| Returns duration in sec in HH:MM:SS format |-------- */
+  /* -------------------------------------------------------------- */
   function convertSeconds(duration: number) {
     let hours, minutes, seconds;
+
+    /* converts duration into Hours | Minutes | Seconds 
+    and adds leading zero if there's only 1 digit */
     hours = (Math.floor(duration / 3600) % 60).toString().padStart(2, "0");
     minutes = (Math.floor(duration / 60) % 60).toString().padStart(2, "0");
     seconds = Math.floor(duration % 60)
       .toString()
       .padStart(2, "0");
 
+    /* if duration >= 1H returns also HH otherwise returns only MM:SS */
     if (duration >= 3600) {
       return hours + ":" + minutes + ":" + seconds;
     } else {
       return minutes + ":" + seconds;
-    }
-  }
-
-  async function inputOpen(event: ChangeEvent) {
-    await openFiles(event)
-      .then((isDone) => {
-        if (isDone) {
-          let rightPaneContent = document.querySelector(".right-pane__content") as HTMLDivElement;
-          rightPaneContent.classList.remove("noTouching");
-
-          songs.forEach(function (song) {
-            playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
-          });
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }
-
-  async function inputAdd(event: ChangeEvent) {
-    let songsExist = document.querySelectorAll(".song");
-
-    if (!songsExist.length) {
-      inputOpen(event);
-    } else {
-      console.log(songsExist);
-    }
-  }
-
-  React.useEffect(() => {
-    isPlayingRef.current = isPlaying;
-  }, [isPlaying]);
-
-  function previous() {
-    if (playlist.length > 0) {
-      //
-      if (isPlayingRef.current) {
-        let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
-
-        let indexOfPlaying = playlist.indexOf(currentPlaying);
-
-        if (indexOfPlaying === 0) {
-          console.log("index is 0");
-        } else {
-          let previousToPlay = playlist[indexOfPlaying - 1];
-          let previousAudio = previousToPlay.getElementsByTagName("audio")[0];
-
-          let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
-
-          playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousToPlay);
-        }
-      }
-    }
-  }
-
-  function next() {
-    if (playlist.length > 0) {
-      //
-      // if (isPlayingRef.current) {
-      let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
-
-      let indexOfPlaying = playlist.indexOf(currentPlaying);
-
-      if (indexOfPlaying === playlist.length - 1) {
-        console.log("end of playlist");
-      } else {
-        let nextToPlay = playlist[indexOfPlaying + 1];
-        let nextAudio = nextToPlay.getElementsByTagName("audio")[0];
-
-        let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
-
-        playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextToPlay);
-      }
-    }
-  }
-
-  function playNextOrPrevious(
-    mainAudio: HTMLAudioElement,
-    nextPrevAudio: HTMLAudioElement,
-    curPlayingEl: HTMLLIElement,
-    nextOrPrevEl: HTMLLIElement
-  ) {
-    let playPromise = mainAudio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then((_) => {
-          let playbarDuration = document.getElementsByClassName("duration")[0];
-
-          mainAudio.src = nextPrevAudio.src;
-          mainAudio.load();
-
-          playbarDuration.textContent = convertSeconds(nextPrevAudio.duration);
-
-          curPlayingEl.classList.remove("nowPlaying");
-          nextOrPrevEl.classList.add("nowPlaying");
-          if (playPromise !== undefined) {
-            playPromise
-              .then((_) => {
-                mainAudio.play();
-              })
-              .catch((error) => {
-                alert("Something went wrong " + error);
-              });
-          }
-        })
-        .catch((error) => {
-          alert("sSomething went wrong " + error);
-        });
     }
   }
 
@@ -751,7 +800,7 @@ export const App = () => {
       <LeftPane index={activeIndex} handleInputs={handleInputsClick} />
       <RightPane />
 
-      <Playbar isPlaying={isPlaying} previous={previous} next={next} />
+      <Playbar isPlaying={isPlaying} previous={previous} next={next} mute={muteAudio} isMuted={isMuted} />
 
       <audio id="mainAudio" className="mainAudio" onEnded={next} />
     </div>

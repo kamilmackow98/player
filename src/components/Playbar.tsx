@@ -2,6 +2,8 @@ import React, { MouseEvent } from "react";
 
 interface Props {
   isPlaying: boolean;
+  isMuted: boolean;
+  mute: Function;
   previous: Function;
   next: Function;
 }
@@ -18,13 +20,23 @@ const Playbar = (props: Props) => {
       <span className="timestamp"></span>
 
       <div className="playbar__left-controls">
-        <span className="previous" onClick={(e) => {props.previous(e)}}>
+        <span
+          className="previous"
+          onClick={(e) => {
+            props.previous(e);
+          }}
+        >
           <i className="material-icons md-20">fast_rewind</i>
         </span>
         <span className="play-pause">
           <i className="material-icons md-20">{props.isPlaying ? "pause" : "play_arrow"}</i>
         </span>
-        <span className="next" onClick={(e) => {props.next(e)}}>
+        <span
+          className="next"
+          onClick={(e) => {
+            props.next(e);
+          }}
+        >
           <i className="material-icons md-20">fast_forward</i>
         </span>
       </div>
@@ -61,8 +73,13 @@ const Playbar = (props: Props) => {
         </span>
 
         {/* volume container */}
-        <div className="playbar__volume">
-          <i className="material-icons md-20 vol-icon">volume_down</i>
+        <div
+          className="playbar__volume"
+          onClick={(e) => {
+            props.mute();
+          }}
+        >
+          <i className="material-icons md-20 vol-icon">{props.isMuted ? "volume_off" : "volume_up"}</i>
 
           <div className="volume__wrap">
             <span className="bar">
