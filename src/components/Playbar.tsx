@@ -1,20 +1,19 @@
-import React, { MouseEvent } from "react";
+import React from "react";
 
 interface Props {
   isPlaying: boolean;
+  isLooped: boolean;
+  isShuffled: boolean;
   isMuted: boolean;
+
+  loopAudio: Function;
+  shuffle: Function;
   mute: Function;
   previous: Function;
   next: Function;
 }
 
 const Playbar = (props: Props) => {
-  /* toggle class on controls when clicked */
-  function handleClick(e: MouseEvent) {
-    e.stopPropagation();
-    e.currentTarget.classList.toggle("selected");
-  }
-
   return (
     <div className="playbar">
       <span className="timestamp"></span>
@@ -54,9 +53,9 @@ const Playbar = (props: Props) => {
       <div className="playbar__right-controls">
         {/* repeat container */}
         <span
-          className="playbar__repeat"
+          className={props.isLooped ? "playbar__repeat selected" : "playbar__repeat"}
           onClick={(e) => {
-            handleClick(e);
+            props.loopAudio(e);
           }}
         >
           <i className="material-icons md-20">repeat</i>
@@ -64,9 +63,9 @@ const Playbar = (props: Props) => {
 
         {/* shuffle container */}
         <span
-          className="playbar__shuffle"
+          className={props.isShuffled ? "playbar__shuffle selected" : "playbar__shuffle"}
           onClick={(e) => {
-            handleClick(e);
+            props.shuffle(e);
           }}
         >
           <i className="material-icons md-20">shuffle</i>
@@ -76,7 +75,7 @@ const Playbar = (props: Props) => {
         <div
           className="playbar__volume"
           onClick={(e) => {
-            props.mute();
+            props.mute(e);
           }}
         >
           <i className="material-icons md-20 vol-icon">{props.isMuted ? "volume_off" : "volume_up"}</i>

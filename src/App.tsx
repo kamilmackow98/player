@@ -21,7 +21,7 @@ import "./sass/app.scss";
  * TODO : change context menu (right click) AND prevent F12 or global right click
  * TODO : add EventListener to hide list of UnknownAlbum
  *
- * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has EventListener
+ * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has an EventListener
  */
 
 interface fileInfo {
@@ -41,18 +41,39 @@ interface Songs {
 }
 
 /* needed to be put before const App otherwise with each render will reset the variable */
-let songs: Array<Songs> = [];
-let playlist: Array<HTMLLIElement> = [];
+let songs: Array<Songs> = []; // songs array -> Array of objects {"albumTitle", [ArrayOfLi]}
+let playlist: Array<HTMLLIElement> = []; // playlist array -> only <li> elements
+let shuffledPlaylist: Array<HTMLLIElement> = []; // same as playlist but random songs
 
 export const App = () => {
   const [activeIndex, setIndex] = React.useState(0); // initial index set to 0 - File Tab
   const [isPlaying, setIsPlaying] = React.useState(false); // state to check if audio is playing
   const [isMuted, setIsMuted] = React.useState(false); // state to check if main audio is muted
+  const [isLooped, setIsLooped] = React.useState(false); // state to check if main audio should repeat the song
+  const [isShuffled, setIsShuffled] = React.useState(false); // state to check if playlist is shuffled
 
   const openInput_ref = React.useRef<HTMLInputElement>(null); // input to open new files
   const addInput_ref = React.useRef<HTMLInputElement>(null); // input to add files to the playlist
 
   let objectUrl: string; // variable to store url objects
+
+  React.useEffect(() => {
+    shufflePlaylist();
+
+    function shufflePlaylist() {
+      if (isShuffled) {
+        shuffledPlaylist = [];
+        shuffledPlaylist = playlist;
+
+        for (let i = shuffledPlaylist.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * i);
+          const temp = shuffledPlaylist[i];
+          shuffledPlaylist[i] = shuffledPlaylist[j];
+          shuffledPlaylist[j] = temp;
+        }
+      }
+    }
+  }, [isShuffled]);
 
   /* -------------------------------------------- */
   /* --------| simply changes the index |-------- */
@@ -61,9 +82,30 @@ export const App = () => {
     setIndex(index);
   };
 
+  /* --------------------------------------------- */
+  /* --------| simply changes loop state |-------- */
+  /* --------------------------------------------- */
+  function loopAudio() {
+    setIsLooped(!isLooped);
+  }
+
+  /* ----------------------------------------- */
+  /* --------| changes shuffle state |-------- */
+  /* ----------------------------------------- */
+  function shuffle() {
+    /* only if there are elements in playlist Array */
+    if (playlist.length > 0) {
+      setIsShuffled(!isShuffled);
+    }
+  }
+
+  /* ---------------------------------------------- */
+  /* --------| mutes or unmutes mainAudio |-------- */
+  /* ---------------------------------------------- */
   function muteAudio() {
     let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
 
+    /* if mainAudio element isn't mute - mutes the audio and changes the state */
     if (!mainAudio.muted) {
       mainAudio.muted = true;
       setIsMuted(true);
@@ -598,6 +640,8 @@ export const App = () => {
         playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
       }
     }
+
+    console.log("next fn");
   }
 
   /* ----------------------------------------------------------- */
@@ -800,9 +844,19 @@ export const App = () => {
       <LeftPane index={activeIndex} handleInputs={handleInputsClick} />
       <RightPane />
 
-      <Playbar isPlaying={isPlaying} previous={previous} next={next} mute={muteAudio} isMuted={isMuted} />
+      <Playbar
+        isPlaying={isPlaying}
+        previous={previous}
+        next={next}
+        isLooped={isLooped}
+        loopAudio={loopAudio}
+        isShuffled={isShuffled}
+        shuffle={shuffle}
+        isMuted={isMuted}
+        mute={muteAudio}
+      />
 
-      <audio id="mainAudio" className="mainAudio" onEnded={next} />
+      <audio id="mainAudio" className="mainAudio" onEnded={next} loop={isLooped} />
     </div>
   );
 };

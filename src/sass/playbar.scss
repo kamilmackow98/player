@@ -71,12 +71,6 @@
     overflow: hidden;
     display: flex;
 
-    &:hover {
-      .line {
-        background-color: rgb(255, 255, 255);
-      }
-    }
-
     /* fill or line */
     .line {
       -webkit-transition: all 250ms ease-out;
