@@ -1,12 +1,16 @@
 import React from "react";
 import unknown from "../images/unknown.png";
 
-const RightPane = () => {
+interface Props {
+  hideUnknownUl: Function;
+}
+
+const RightPane = (props: Props) => {
   return (
     <div className="right-pane">
       <div className="right-pane__content">
         <div className="album unknown hidden" data-album="unknown">
-          <div className="album__info">
+          <div className="album__info" onDoubleClick={(e) => {props.hideUnknownUl(e)}}>
             <img className="album__cover noAlbumCover unknownImg" src={unknown} alt="unknown" />
 
             <div className="band__name">Unknown Albums</div>

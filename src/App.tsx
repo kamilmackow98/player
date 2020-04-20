@@ -13,13 +13,10 @@ import "./sass/app.scss";
  * TODO : add color text + icons in panes as the variable theme ($third variable)
  * TODO : add checkbox/button to toggle album reflection ON/OFF
  * TODO : check file types
- * TODO : set index on [Album] tab after opening the files
+ * TODO : set index on [Album] tab after opening the files / dbclick on li
  * TODO : button with sort function to sort albums by ARTIST NAME in playlist from A to Z
- * TODO : in openFiles() instead of opening and creatingObjectURL album cover / picture from every audio file - get from the first file with track number === 01
- * TODO : add condition to check if audio / song already exists (maybe)
- * TODO : add keyboard shortcuts (Play-Pause on spacebar | Next-Previous maybe Ctrl+L and Ctrl+J)
+ * TODO : add keyboard shortcuts (Next-Previous maybe Ctrl+L and Ctrl+J)
  * TODO : change context menu (right click) AND prevent F12 or global right click
- * TODO : add EventListener to hide list of UnknownAlbum
  *
  * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has an EventListener
  */
@@ -56,76 +53,6 @@ export const App = () => {
   const addInput_ref = React.useRef<HTMLInputElement>(null); // input to add files to the playlist
 
   let objectUrl: string; // variable to store url objects
-
-  React.useEffect(() => {
-    shufflePlaylist();
-
-    function shufflePlaylist() {
-      if (isShuffled) {
-        shuffledPlaylist = [];
-        shuffledPlaylist = playlist;
-
-        for (let i = shuffledPlaylist.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * i);
-          const temp = shuffledPlaylist[i];
-          shuffledPlaylist[i] = shuffledPlaylist[j];
-          shuffledPlaylist[j] = temp;
-        }
-      }
-    }
-  }, [isShuffled]);
-
-  /* -------------------------------------------- */
-  /* --------| simply changes the index |-------- */
-  /* -------------------------------------------- */
-  const handleIndex = (index: number) => {
-    setIndex(index);
-  };
-
-  /* --------------------------------------------- */
-  /* --------| simply changes loop state |-------- */
-  /* --------------------------------------------- */
-  function loopAudio() {
-    setIsLooped(!isLooped);
-  }
-
-  /* ----------------------------------------- */
-  /* --------| changes shuffle state |-------- */
-  /* ----------------------------------------- */
-  function shuffle() {
-    /* only if there are elements in playlist Array */
-    if (playlist.length > 0) {
-      setIsShuffled(!isShuffled);
-    }
-  }
-
-  /* ---------------------------------------------- */
-  /* --------| mutes or unmutes mainAudio |-------- */
-  /* ---------------------------------------------- */
-  function muteAudio() {
-    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
-
-    /* if mainAudio element isn't mute - mutes the audio and changes the state */
-    if (!mainAudio.muted) {
-      mainAudio.muted = true;
-      setIsMuted(true);
-    } else {
-      mainAudio.muted = false;
-      setIsMuted(false);
-    }
-  }
-
-  /* --------------------------------------------------- */
-  /* --------| simulates mouse click on inputs |-------- */
-  /* --------------------------------------------------- */
-  function handleInputsClick(event: React.MouseEvent) {
-    /* checks first which button is clicked then simulates mouse click on input */
-    if (event.currentTarget.classList.contains("open-files") && openInput_ref.current) {
-      openInput_ref.current.click();
-    } else if (event.currentTarget.classList.contains("add-files") && addInput_ref.current) {
-      addInput_ref.current.click();
-    }
-  }
 
   /* ------------------------------------------------------ */
   /* --------| Main useEffect with some functions |-------- */
@@ -255,6 +182,84 @@ export const App = () => {
       window.removeEventListener("resize", ratio);
     };
   });
+
+  /* -------------------------------------------------------------- */
+  /* --------| useEffect only if isShuffled state changes |-------- */
+  /* -------------------------------------------------------------- */
+  React.useEffect(() => {
+    shufflePlaylist();
+
+    /* --------------------------------------------- */
+    /* --------| shuffle playlist function |-------- */
+    /* --------------------------------------------- */
+    function shufflePlaylist() {
+      /* only if state (isShuffled) true */
+      if (isShuffled) {
+        shuffledPlaylist = []; // reset the array
+        shuffledPlaylist = playlist; // copy each element from playlist to shuffledPlaylist
+
+        /* shuffle the array */
+        for (let i = shuffledPlaylist.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * i);
+          const temp = shuffledPlaylist[i];
+          shuffledPlaylist[i] = shuffledPlaylist[j];
+          shuffledPlaylist[j] = temp;
+        }
+      }
+    }
+  }, [isShuffled]);
+
+  /* -------------------------------------------- */
+  /* --------| simply changes the index |-------- */
+  /* -------------------------------------------- */
+  const handleIndex = (index: number) => {
+    setIndex(index);
+  };
+
+  /* --------------------------------------------------- */
+  /* --------| simulates mouse click on inputs |-------- */
+  /* --------------------------------------------------- */
+  function handleInputsClick(event: React.MouseEvent) {
+    /* checks first which button is clicked then simulates mouse click on input */
+    if (event.currentTarget.classList.contains("open-files") && openInput_ref.current) {
+      openInput_ref.current.click();
+    } else if (event.currentTarget.classList.contains("add-files") && addInput_ref.current) {
+      addInput_ref.current.click();
+    }
+  }
+
+  /* --------------------------------------------- */
+  /* --------| simply changes loop state |-------- */
+  /* --------------------------------------------- */
+  function loopAudio() {
+    setIsLooped(!isLooped);
+  }
+
+  /* ----------------------------------------- */
+  /* --------| changes shuffle state |-------- */
+  /* ----------------------------------------- */
+  function shuffle() {
+    /* only if there are elements in playlist Array */
+    if (playlist.length > 0) {
+      setIsShuffled(!isShuffled);
+    }
+  }
+
+  /* ---------------------------------------------- */
+  /* --------| mutes or unmutes mainAudio |-------- */
+  /* ---------------------------------------------- */
+  function muteAudio() {
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
+
+    /* if mainAudio element isn't mute - mutes the audio and changes the state */
+    if (!mainAudio.muted) {
+      mainAudio.muted = true;
+      setIsMuted(true);
+    } else {
+      mainAudio.muted = false;
+      setIsMuted(false);
+    }
+  }
 
   /* fire on change when user opens files */
   async function openFiles(event: ChangeEvent): Promise<{ done: boolean }> {
@@ -608,12 +613,25 @@ export const App = () => {
       /* if reaches beginning of the playlist plays the last audio
          otherwise plays previous audio from the playlsit */
       if (indexOfCurrent === 0) {
-        console.log("index is 0");
+        let previousIndex = playlist[playlist.length - 1];
+        let previousAudio = previousIndex.getElementsByTagName("audio")[0];
+
+        playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
+
+        let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
       } else {
         let previousIndex = playlist[indexOfCurrent - 1]; // gets previous index (current - 1)
         let previousAudio = previousIndex.getElementsByTagName("audio")[0]; // retrieves previous audio from playlist
 
         playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
+
+        let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
       }
     }
   }
@@ -632,16 +650,27 @@ export const App = () => {
       /* if reaches end of the playlist plays the first audio
          otherwise plays next audio from the playlsit */
       if (indexOfCurrent === playlist.length - 1) {
-        console.log("end of playlist");
+        let nextIndex = playlist[0];
+        let nextAudio = nextIndex.getElementsByTagName("audio")[0];
+
+        playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
+
+        let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
       } else {
         let nextIndex = playlist[indexOfCurrent + 1]; // gets next index (current + 1)
         let nextAudio = nextIndex.getElementsByTagName("audio")[0]; // retrieves next audio from playlist
 
         playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
+
+        let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
       }
     }
-
-    console.log("next fn");
   }
 
   /* ----------------------------------------------------------- */
@@ -842,7 +871,7 @@ export const App = () => {
       />
 
       <LeftPane index={activeIndex} handleInputs={handleInputsClick} />
-      <RightPane />
+      <RightPane hideUnknownUl={displayHideList} />
 
       <Playbar
         isPlaying={isPlaying}
