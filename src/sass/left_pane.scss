@@ -145,44 +145,85 @@
     display: none;
   }
 
-  .add-files {
-    margin-bottom: 0;
+  .toggle-relfection {
+    text-align: center;
+    display: flex;
+    width: 80%;
+
+    min-width: 100px;
+    cursor: pointer;
+
+    border: 3px solid lighten($primary, 4%);
+    transition: border 200ms ease;
+
+    &:active {
+      -webkit-tap-highlight-color: transparent;
+      background-color: lighten($primary, 4%);
+      outline: none;
+    }
+
+    label {
+      cursor: pointer;
+      height: 100%;
+      width: 100%;
+
+      padding: 10px;
+    }
+
+    #relfection-checkbox {
+      display: none;
+    }
   }
 }
 
 /* album cover */
 #album {
-  // border: 4px solid lighten($color: $primary, $amount: 4%);
-  box-shadow: 0 0 5px 2px rgba(0, 0, 0, 0.25);
-  position: relative;
-
-  background-image: url("../images/1.jpg");
-  background-color: lighten($primary, 4%);
+  background-image: url("../images/unknown.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
+  position: relative;
 
   height: auto;
   width: 80%;
 
-  .reflection {
+  &[data-cover="true"] {
+    box-shadow: 0 0 5px 2px rgba(0, 0, 0, 0.25);
+    border: 4px solid lighten($primary, 4%);
+  }
+
+  /* sets border if cover exists  */
+  &[data-cover="true"]:not([data-reflection="true"]) {
+    border: 4px solid lighten($primary, 4%);
+  }
+
+  &[data-cover="true"] .reflection {
     background-position: center bottom;
     background-image: inherit;
     background-size: 0;
 
     transform: scaleY(-1);
     position: absolute;
-    top: 100%;
-    left: 0;
+    left: -4px;
+    top: calc(100% + 4px);
 
-    width: 100%;
+    width: calc(100% + 8px);
     height: 15%;
+
+    display: none;
+
+    &.show {
+      display: block;
+    }
 
     .reflection__img {
       background-position: center bottom;
       background-image: inherit;
       background-size: cover;
       opacity: 0.5;
+
+      border: 4px solid lighten($primary, 6%);
+      border-bottom: none;
 
       position: absolute;
       left: 0;
@@ -193,13 +234,13 @@
     }
 
     .reflection__shadow {
-      background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+      background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
       transform: scaleY(-1);
       position: absolute;
-      bottom: 0;
-      left: 0;
+      bottom: -0.25%;
+      left: 4px;
 
-      width: 100.1%;
+      width: calc(100.1% - 8px);
       height: 50%;
     }
 
@@ -384,7 +425,6 @@
 
       min-width: 220px;
       width: 60%;
-
     }
 
     .open-files {
@@ -404,6 +444,11 @@
       i.size {
         font-size: 48px;
       }
+    }
+
+    .toggle-relfection {
+      min-width: 220px;
+      width: 60%;
     }
   }
 }
@@ -458,6 +503,22 @@
 
       i.size {
         font-size: 48px;
+      }
+    }
+
+    .toggle-relfection {
+      min-width: 250px;
+      width: 50%;
+
+      &:hover {
+        border: 3px solid $secondary;
+      }
+
+      &:active {
+        -webkit-tap-highlight-color: transparent;
+        background-color: transparent;
+        border: 3px solid $secondary;
+        outline: none;
       }
     }
   }

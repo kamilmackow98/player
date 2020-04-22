@@ -10,14 +10,14 @@ import UnknownImage from "./images/unknown.png";
 import "./sass/app.scss";
 
 /**
- * TODO : add color text + icons in panes as the variable theme ($third variable)
- * TODO : add checkbox/button to toggle album reflection ON/OFF
+ * TODO : remove global album cover when opening new files
+ * TODO : when adding files to existing album add also check if the artist of the album is the same
+ * TODO : function to sort albums by ARTIST NAME in playlist from A to Z on adding files
  * TODO : check file types
- * TODO : set index on [Album] tab after opening the files / dbclick on li
- * TODO : button with sort function to sort albums by ARTIST NAME in playlist from A to Z
+ * TODO : add checkbox/button to toggle album reflection ON/OFF
  * TODO : add keyboard shortcuts (Next-Previous maybe Ctrl+L and Ctrl+J)
- * TODO : change context menu (right click) AND prevent F12 or global right click
- *
+ * TODO : add color text + icons in panes as the variable theme ($third variable)
+ * TODO : right click context menu - maybe in future add some options
  * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has an EventListener
  */
 
@@ -49,6 +49,7 @@ export const App = () => {
   const [isLooped, setIsLooped] = React.useState(false); // state to check if main audio should repeat the song
   const [isShuffled, setIsShuffled] = React.useState(false); // state to check if playlist is shuffled
 
+  let isShuffledRef = React.useRef<boolean>();
   const openInput_ref = React.useRef<HTMLInputElement>(null); // input to open new files
   const addInput_ref = React.useRef<HTMLInputElement>(null); // input to add files to the playlist
 
@@ -58,29 +59,73 @@ export const App = () => {
   /* --------| Main useEffect with some functions |-------- */
   /* ------------------------------------------------------ */
   React.useEffect(() => {
-    let play_pause = document.getElementsByClassName("play-pause")[0]; // play & pause control
+    let progressBar = document.getElementsByClassName("progress-bar")[0] as HTMLSpanElement; // progress bar container
+    let lineProgressBar = document.querySelector(".progress-bar .line") as HTMLSpanElement; // line that indicates the progress
+    let timestamp = document.getElementsByClassName("timestamp")[0] as HTMLSpanElement; // timestamp with HH:MM:SS / current time
 
-    let pane_album = document.getElementById("album") as HTMLDivElement; // album cover
+    let currentTimeEl = document.getElementsByClassName("current-time")[0] as HTMLSpanElement; // <span> element with current time
+    let play_pause = document.getElementsByClassName("play-pause")[0] as HTMLSpanElement; // play & pause control
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement; // main <audio> element
+
+    let pane_album = document.getElementById("album") as HTMLDivElement; // main album cover
     let album_width_init = pane_album.offsetWidth; // initial width value
-
-    let currentTimeEl = document.getElementsByClassName("current-time")[0] as HTMLSpanElement;
-    let lineProgressBar = document.querySelector(".progress-bar .line") as HTMLSpanElement;
-
-    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
-    let progressBar = document.getElementsByClassName("progress-bar")[0] as HTMLSpanElement;
-    let timestamp = document.getElementsByClassName("timestamp")[0] as HTMLSpanElement;
 
     pane_album.style.height = `${album_width_init}px`; // initialize height = same as width
 
-    /* maintains aspect ratio of album cover on resizing */
-    function ratio() {
-      let album_width = pane_album.offsetWidth; // gets album width
-      pane_album.style.height = `${album_width}px`; // sets height
+    /* ------------------------------------------------------------------------------------ */
+    /* --------| on timeUpdate changes current time <span> and moves progress bar |-------- */
+    /* ------------------------------------------------------------------------------------ */
+    function updateProgressBar() {
+      currentTimeEl.textContent = convertSeconds(mainAudio.currentTime); // converts seconds from current audio time and puts it in DOM
+      let percentage = parseFloat(((mainAudio.currentTime / mainAudio.duration) * 100).toFixed(3)); // (currTime / fullDuration) * 100 = current percentage
+      lineProgressBar.style.transform = `translate3d(${-100.2 + percentage}%, 0, 0)`; // updates and moves the line EL according to the percentage
     }
 
-    /* for now it changes [Play - Pause] icon */
+    /* ---------------------------------------------------- */
+    /* --------| displays timestamp on mouseEnter |-------- */
+    /* ---------------------------------------------------- */
+    function progressTimestamp(this: HTMLElement, event: MouseEvent) {
+      let x = event.pageX; // gets x coords from left side of the page
+
+      let totalWidth = progressBar.offsetWidth; // width of progress bar
+      let percentage = (x - this.offsetLeft) / totalWidth; // gets percentage from progress bar width on current position
+
+      if (mainAudio.src && mainAudio.duration) {
+        timestamp.style.display = "flex";
+        timestamp.style.transform = `translate3d(calc(-50% + ${x}px), 0, 0)`; // -50% to center timestamp + "x" px from left
+
+        let audioSeconds = mainAudio.duration * percentage; // gets percentage from full audio duration on current position
+        timestamp.textContent = convertSeconds(audioSeconds); // converts seconds into HH:MM:SS and puts it in <span>
+      }
+    }
+
+    /* ----------------------------------------------------------------- */
+    /* --------| sets currentTime when clicked on progress bar |-------- */
+    /* ----------------------------------------------------------------- */
+    function setCurrentTime(this: HTMLElement, event: MouseEvent) {
+      /* element distance from the left of the page - distance of element from the beginning of the parent 
+      IF PARENT HAS RELATIVE POSITION add "- 100px" because of that left controls that take 100px of space */
+      let xCord = event.pageX - this.offsetLeft;
+
+      let totalWidth = progressBar.offsetWidth; // width of progress bar
+      let percentage = xCord / totalWidth;
+
+      if (mainAudio.src && mainAudio.duration) {
+        let audioSeconds = mainAudio.duration * percentage; // get current seconds / time from percentage of the full audio duration
+        mainAudio.currentTime = audioSeconds; // sets current time on <audio> element
+
+        if (mainAudio.paused) {
+          setIsPlaying(true);
+          mainAudio.play();
+        }
+      }
+    }
+
+    /* ------------------------------------------------------ */
+    /* --------| Plays or pauses mainAudio on click |-------- */
+    /* ------------------------------------------------------ */
     function togglePlay() {
-      /* first child of control which is - material icon */
+      /* only if mainAudio has loaded data */
       if (mainAudio.src && mainAudio.duration) {
         if (isPlaying === false) {
           setIsPlaying(true);
@@ -92,60 +137,9 @@ export const App = () => {
       }
     }
 
-    /* update progress bar line on timeupdate of mainAudio */
-    function updateProgressBar() {
-      currentTimeEl.textContent = convertSeconds(mainAudio.currentTime);
-      let percentage = parseFloat(((mainAudio.currentTime / mainAudio.duration) * 100).toFixed(3));
-
-      lineProgressBar.style.transform = `translate3d(${-100.2 + percentage}%, 0, 0)`;
-    }
-
-    function setCurrentTime(this: HTMLElement, event: MouseEvent) {
-      /* element distance from the left of the page - distance of element from the beginning of the parent 
-      IF PARENT HAS RELATIVE POSITION add "- 100px" because of that left controls that take 100px of space */
-      let xCord = event.pageX - this.offsetLeft;
-
-      let totalWidth = progressBar.offsetWidth; // width of progress bar
-      let percentage = xCord / totalWidth;
-
-      if (mainAudio.src && mainAudio.duration) {
-        let audioSeconds = mainAudio.duration * percentage; // get current seconds / time from percentage of the full audio duration
-        mainAudio.currentTime = audioSeconds;
-
-        if (mainAudio.paused) {
-          setIsPlaying(true);
-          mainAudio.play();
-        }
-      }
-    }
-
-    function progressTimestamp(this: HTMLElement, event: MouseEvent) {
-      let x = event.pageX;
-
-      let totalWidth = progressBar.offsetWidth;
-      let percentage = (x - this.offsetLeft) / totalWidth;
-
-      if (mainAudio.src && mainAudio.duration) {
-        timestamp.style.display = "flex";
-        timestamp.style.transform = `translate3d(calc(-50% + ${x}px), 0, 0)`;
-
-        let audioSeconds = mainAudio.duration * percentage;
-        timestamp.textContent = convertSeconds(audioSeconds);
-      }
-    }
-
-    function hideTimestamp() {
-      timestamp.style.display = "none";
-    }
-
-    function play() {
-      setIsPlaying(true);
-    }
-
-    function pause() {
-      setIsPlaying(false);
-    }
-
+    /* --------------------------------------------------------------- */
+    /* --------| Plays or pauses mainAudio on spacebar press |-------- */
+    /* --------------------------------------------------------------- */
     function spacebarToggle(event: KeyboardEvent) {
       if (event.keyCode === 32 && mainAudio.src) {
         event.preventDefault();
@@ -153,6 +147,38 @@ export const App = () => {
       }
     }
 
+    /* ----------------------------------------------------------------------------- */
+    /* --------| when mainAudio is / starts playing sets isPlaying to true |-------- */
+    /* ----------------------------------------------------------------------------- */
+    function play() {
+      setIsPlaying(true);
+    }
+
+    /* -------------------------------------------------------------------- */
+    /* --------| when mainAudio is paused sets isPlaying to false |-------- */
+    /* -------------------------------------------------------------------- */
+    function pause() {
+      setIsPlaying(false);
+    }
+
+    /* ---------------------------------------------------- */
+    /* --------| onMouseLeave hides the timestamp |-------- */
+    /* ---------------------------------------------------- */
+    function hideTimestamp() {
+      timestamp.style.display = "none";
+    }
+
+    /* -------------------------------------------------- */
+    /* --------| keeps aspect ratio on resizing |-------- */
+    /* -------------------------------------------------- */
+    function ratio() {
+      let album_width = pane_album.offsetWidth; // gets album width
+      pane_album.style.height = `${album_width}px`; // sets height
+    }
+
+    /**
+     * * Adds event listeners on components mount
+     */
     window.addEventListener("keydown", spacebarToggle);
 
     progressBar.addEventListener("mousemove", progressTimestamp);
@@ -166,7 +192,9 @@ export const App = () => {
     play_pause.addEventListener("click", togglePlay);
     window.addEventListener("resize", ratio);
 
-    /* on component unmount - event listeners cleanup */
+    /**
+     * * On components unmount - event listeners cleanup
+     */
     return function cleanupListener() {
       window.removeEventListener("keydown", spacebarToggle);
 
@@ -189,6 +217,8 @@ export const App = () => {
   React.useEffect(() => {
     shufflePlaylist();
 
+    isShuffledRef.current = isShuffled;
+
     /* --------------------------------------------- */
     /* --------| shuffle playlist function |-------- */
     /* --------------------------------------------- */
@@ -196,7 +226,8 @@ export const App = () => {
       /* only if state (isShuffled) true */
       if (isShuffled) {
         shuffledPlaylist = []; // reset the array
-        shuffledPlaylist = playlist; // copy each element from playlist to shuffledPlaylist
+        // shuffledPlaylist = playlist.slice(0); // copy each element from playlist to shuffledPlaylist
+        shuffledPlaylist = [...playlist];
 
         /* shuffle the array */
         for (let i = shuffledPlaylist.length - 1; i > 0; i--) {
@@ -261,6 +292,42 @@ export const App = () => {
     }
   }
 
+  /* -------------------------------------------------------------- */
+  /* --------| clears src, currentTime, progress bar etc. |-------- */
+  /* -------------------------------------------------------------- */
+  function clearMainAudio() {
+    let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement;
+    let duration = document.getElementsByClassName("duration")[0];
+    let currentT = document.getElementsByClassName("current-time")[0];
+    let line = document.querySelector(".progress-bar .line") as HTMLSpanElement;
+
+    setIsShuffled(false); // reset shuffled
+
+    if (mainAudio.src) {
+      let playPromise = mainAudio.play(); // promise returned from play()
+
+      /* proper way to clear audio */
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          mainAudio.pause();
+
+          mainAudio.setAttribute("src", ""); // clear src
+          mainAudio.removeAttribute("src"); // remove src attribute completely
+          line.style.transform = "translate3d(-100.2%, 0, 0)"; // reset line on progress bar
+
+          /* resets current time and duration text */
+          /* needed to add timeout because mainAudio has
+          eventListener on timeupdate and it isn't sometimes
+          100% done so currentTime text changes to 00:00 */
+          setTimeout(() => {
+            duration.textContent = "-- : --";
+            currentT.textContent = "-- : --";
+          }, 250);
+        });
+      }
+    }
+  }
+
   /* fire on change when user opens files */
   async function openFiles(event: ChangeEvent): Promise<{ done: boolean }> {
     let rightPaneContent = document.getElementsByClassName("right-pane__content")[0] as HTMLDivElement; // container with all [albums] <div>
@@ -303,12 +370,15 @@ export const App = () => {
       }
     }
 
+    clearMainAudio();
+
     songs = [];
     playlist = [];
 
     /* checks if any file was selected or not */
     if (!audioFiles || !audioFiles.length) {
       alert("No files selected");
+      clearMainAudio();
     } else {
       /**
        *
@@ -378,6 +448,7 @@ export const App = () => {
 
         audioEl.muted = true;
         liEl.setAttribute("data-track", trackNb);
+        liEl.setAttribute("data-album", songAlbum);
         trackEl.textContent = trackNb + ".";
         titleEl.setAttribute("data-artist", artist);
         titleEl.textContent = songTitle === "Unknown" ? `${audioFiles[i].name.replace(/\.[^/.]+$/, "")}` : songTitle;
@@ -507,15 +578,13 @@ export const App = () => {
               const blob = new Blob([byteArray], { type });
               const albumArtUrl = URL.createObjectURL(blob);
               albumImageEl.src = albumArtUrl;
-              // albumImageEl.onload = function() {
-              //    URL.revokeObjectURL(albumArtUrl);
-              // }
             } else {
               albumImageEl.classList.add("noAlbumCover");
               albumImageEl.src = UnknownImage;
             }
 
             albumContainerEl.setAttribute("data-album", songAlbum);
+            albumContainerEl.setAttribute("data-artist", artist);
             bandNameEl.textContent = artist;
             titleDivEl.textContent = songAlbum;
             albumYearEl.textContent = albumYear;
@@ -608,30 +677,57 @@ export const App = () => {
     /* if playlist contains audios and any song is already loaded */
     if (playlist.length > 0 && mainAudio.src) {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
-      let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
 
-      /* if reaches beginning of the playlist plays the last audio
-         otherwise plays previous audio from the playlsit */
-      if (indexOfCurrent === 0) {
-        let previousIndex = playlist[playlist.length - 1];
-        let previousAudio = previousIndex.getElementsByTagName("audio")[0];
+      if (isShuffledRef.current) {
+        let indexOfCurrent = shuffledPlaylist.indexOf(currentPlaying);
 
-        playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
+        if (indexOfCurrent === 0) {
+          let previousIndex = shuffledPlaylist[shuffledPlaylist.length - 1];
+          let previousAudio = previousIndex.getElementsByTagName("audio")[0];
 
-        let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
 
-        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          let songName = previousIndex.getElementsByClassName("song__title")[0];
+          let artist = songName.getAttribute("data-artist");
+
+          document.title = artist + " - " + songName.textContent;
+        } else {
+          let previousIndex = shuffledPlaylist[indexOfCurrent - 1];
+          let previousAUdio = previousIndex.getElementsByTagName("audio")[0];
+
+          playNextOrPrevious(mainAudio, previousAUdio, currentPlaying, previousIndex);
+
+          let songName = previousIndex.getElementsByClassName("song__title")[0];
+          let artist = songName.getAttribute("data-artist");
+
+          document.title = artist + " - " + songName.textContent;
+        }
       } else {
-        let previousIndex = playlist[indexOfCurrent - 1]; // gets previous index (current - 1)
-        let previousAudio = previousIndex.getElementsByTagName("audio")[0]; // retrieves previous audio from playlist
+        let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
 
-        playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
+        /* if reaches beginning of the playlist plays the last audio
+         otherwise plays previous audio from the playlsit */
+        if (indexOfCurrent === 0) {
+          let previousIndex = playlist[playlist.length - 1];
+          let previousAudio = previousIndex.getElementsByTagName("audio")[0];
 
-        let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
 
-        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+        } else {
+          let previousIndex = playlist[indexOfCurrent - 1]; // gets previous index (current - 1)
+          let previousAudio = previousIndex.getElementsByTagName("audio")[0]; // retrieves previous audio from playlist
+
+          playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
+
+          let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+        }
       }
     }
   }
@@ -645,30 +741,57 @@ export const App = () => {
     /* if playlist contains audios and any song is already loaded */
     if (playlist.length > 0 && mainAudio.src) {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
-      let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
 
-      /* if reaches end of the playlist plays the first audio
-         otherwise plays next audio from the playlsit */
-      if (indexOfCurrent === playlist.length - 1) {
-        let nextIndex = playlist[0];
-        let nextAudio = nextIndex.getElementsByTagName("audio")[0];
+      if (isShuffledRef.current) {
+        let indexOfCurrent = shuffledPlaylist.indexOf(currentPlaying);
 
-        playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
+        if (indexOfCurrent === playlist.length - 1) {
+          let nextIndex = shuffledPlaylist[0];
+          let nextAudio = nextIndex.getElementsByTagName("audio")[0];
 
-        let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
 
-        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+        } else {
+          let nextIndex = shuffledPlaylist[indexOfCurrent + 1];
+          let nextAudio = nextIndex.getElementsByTagName("audio")[0];
+
+          playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
+
+          let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+        }
       } else {
-        let nextIndex = playlist[indexOfCurrent + 1]; // gets next index (current + 1)
-        let nextAudio = nextIndex.getElementsByTagName("audio")[0]; // retrieves next audio from playlist
+        let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
 
-        playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
+        /* if reaches end of the playlist plays the first audio
+         otherwise plays next audio from the playlsit */
+        if (indexOfCurrent === playlist.length - 1) {
+          let nextIndex = playlist[0];
+          let nextAudio = nextIndex.getElementsByTagName("audio")[0];
 
-        let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-        let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
 
-        document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+        } else {
+          let nextIndex = playlist[indexOfCurrent + 1]; // gets next index (current + 1)
+          let nextAudio = nextIndex.getElementsByTagName("audio")[0]; // retrieves next audio from playlist
+
+          playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
+
+          let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+
+          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+        }
       }
     }
   }
@@ -725,15 +848,24 @@ export const App = () => {
   function handleLiClick(event: MouseEvent) {
     let currentTarget = event.currentTarget as HTMLLIElement; // currentTarget so only <li> no child elements
 
+    /* re-shuffle playlist if isShuffled was enabled */
+    if (isShuffledRef.current) {
+      setIsShuffled(false);
+      setIsShuffled(true);
+    }
+
     /* only fires when <li> is dbClicked */
     if (currentTarget && currentTarget.nodeName === "LI") {
       let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement; // gets main <audio>
       let playbarDuration = document.getElementsByClassName("duration")[0]; // gets duration element
-      let previousLi = document.querySelector(".nowPlaying"); // gets
+      let previousLi = document.querySelector(".nowPlaying"); // gets previous playing song if exists
 
       let currentAudio = currentTarget.getElementsByTagName("audio")[0]; // gets <audio> from selected <li> element
-      let songName = currentTarget.getElementsByClassName("song__title")[0]; // gets <div> with song name
-      let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+      let songNameEL = currentTarget.getElementsByClassName("song__title")[0]; // gets <div> with song name
+      let artist = songNameEL.getAttribute("data-artist"); // gets artist name from data attribute
+
+      let albumTitle = currentTarget.getAttribute("data-album"); // get album title from data attribute
+      let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
 
       mainAudio.src = currentAudio.src; // gets src from selected audio
       mainAudio.load(); // loads the audio
@@ -756,7 +888,26 @@ export const App = () => {
       playbarDuration.textContent = convertSeconds(currentAudio.duration); // sets current duration in DOM
       currentTarget.classList.add("nowPlaying"); // adds indicator on current <li>
 
-      document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+      if (albumTitle === "Unknown") {
+        globalAlbumEL.style.backgroundImage = `url(${UnknownImage})`;
+        globalAlbumEL.setAttribute("data-cover", "false");
+      } else {
+        let albumEL = document.querySelector(
+          `.album[data-album='${albumTitle}'][data-artist='${artist}']`
+        ) as HTMLDivElement;
+        let albumImg = albumEL.getElementsByTagName("img")[0] as HTMLImageElement;
+
+        let imgSrc = albumImg.src;
+        if (albumImg.classList.contains("noAlbumCover")) {
+          globalAlbumEL.style.backgroundImage = `url(${imgSrc})`;
+          globalAlbumEL.setAttribute("data-cover", "false");
+        } else {
+          globalAlbumEL.style.backgroundImage = `url(${imgSrc})`;
+          globalAlbumEL.setAttribute("data-cover", "true");
+        }
+      }
+
+      document.title = artist + " - " + songNameEL.textContent; // sets the title of document to the current song
     }
   }
 

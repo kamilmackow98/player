@@ -11,12 +11,18 @@ interface Props {
 
 const LeftPane = (props: Props) => {
   const { index, handleInputs } = props;
+  const [isChecked, setIsChecked] = React.useState(false);
 
   return (
     <div className="left-pane">
       <div className="left-pane__item">
         {ContentCollection.map((content, i) => (
-          <div key={i} id={content.id} className={i === index ? "show" : "hide"}>
+          <div
+            key={i}
+            id={content.id}
+            className={i === index ? "show" : "hide"}
+            data-reflection={content.id === "album" ? isChecked : undefined}
+          >
             {content.id === "file" && (
               <div className="file__content">
                 <span className="drag-files">
@@ -43,11 +49,26 @@ const LeftPane = (props: Props) => {
                   <i className="material-icons size">add</i>
                   <div>Add files...</div>
                 </div>
+
+                <div className="toggle-relfection">
+                  <input
+                    className="reflection-checkbox"
+                    type="checkbox"
+                    id="relfection-checkbox"
+                    checked={isChecked}
+                    onChange={() => {
+                      setIsChecked(!isChecked);
+                    }}
+                  ></input>
+                  <label htmlFor="relfection-checkbox">
+                    {isChecked ? "Disable album reflection" : "Enable album reflection"}
+                  </label>
+                </div>
               </div>
             )}
 
             {content.id === "album" && (
-              <div className="reflection">
+              <div className={isChecked ? "reflection show" : "reflection"}>
                 <span className="reflection__img"></span>
                 <span className="reflection__shadow"></span>
               </div>
