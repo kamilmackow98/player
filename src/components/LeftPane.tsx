@@ -9,9 +9,30 @@ interface Props {
   index: number;
 }
 
+const API_SEARCH = "https://api.happi.dev/v1/music?q=";
+const API_LYRICS = "https://api.happi.dev/v1/music/artists/";
+const API_KEY = "a785bdcxq0qLhDRbaymzbBBm3qFQkQ0IZZJyrLCZ5ywg2ZyswhL0fYpp";
+
 const LeftPane = (props: Props) => {
   const { index, handleInputs } = props;
   const [isChecked, setIsChecked] = React.useState(false);
+
+  async function searchLyrics() {
+    let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
+
+    if (!currentPlaying) {
+      alert("No songs selected or loaded");
+    } else {
+      let songTitleEl = currentPlaying.getElementsByTagName("div")[0] as HTMLDivElement;
+
+      let artist = songTitleEl.getAttribute("data-artist");
+      let songTitle = songTitleEl.textContent;
+
+      await fetch(API_SEARCH + artist + " " + songTitle + "&apikey=" + API_KEY)
+        .then((response) => response.json())
+        .then((data) => console.log(data));
+    }
+  }
 
   return (
     <div className="left-pane">
@@ -76,18 +97,11 @@ const LeftPane = (props: Props) => {
 
             {content.id === "lyrics" && (
               <div className="lyrics__content">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit. Autem veritatis, delectus tempora iure
-                aspernatur sit!
-                <br />
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ut eos reprehenderit iusto itaque cupiditate?
-                Repellat quas dolorum ipsa at nobis.
-                <br /> Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                <br /> Eligendi eos aliquam aspernatur sapiente molestiae, at laboriosam omnis ex totam provident fuga
-                porro praesentium, laudantium possimus neque beatae laborum quia assumenda.
+                <div className="lyrics__button" onClick={searchLyrics}>
+                  Search lyrics
+                </div>
               </div>
             )}
-
-            {content.id === "theme" && <div className="theme__content">Theme</div>}
           </div>
         ))}
       </div>
@@ -95,11 +109,13 @@ const LeftPane = (props: Props) => {
   );
 };
 
-export let ContentCollection: Content[] = [{ id: "file" }, { id: "album" }, { id: "lyrics" }, { id: "theme" }];
+export let ContentCollection: Content[] = [{ id: "file" }, { id: "album" }, { id: "lyrics" }];
 
 export default LeftPane;
 
 /*
+
+{content.id === "theme" && <div className="theme__content">Theme</div>}
 
 const playlist_btn = React.useRef<HTMLDivElement>(null); // or React.createRef<HTMLUListElement>();
 

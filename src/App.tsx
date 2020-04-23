@@ -10,7 +10,6 @@ import UnknownImage from "./images/unknown.png";
 import "./sass/app.scss";
 
 /**
- * TODO : remove global album cover when opening new files
  * TODO : when adding files to existing album add also check if the artist of the album is the same
  * TODO : function to sort albums by ARTIST NAME in playlist from A to Z on adding files
  * TODO : check file types
@@ -43,7 +42,7 @@ let playlist: Array<HTMLLIElement> = []; // playlist array -> only <li> elements
 let shuffledPlaylist: Array<HTMLLIElement> = []; // same as playlist but random songs
 
 export const App = () => {
-  const [activeIndex, setIndex] = React.useState(0); // initial index set to 0 - File Tab
+  const [activeIndex, setIndex] = React.useState(2); // initial index set to 0 - File Tab
   const [isPlaying, setIsPlaying] = React.useState(false); // state to check if audio is playing
   const [isMuted, setIsMuted] = React.useState(false); // state to check if main audio is muted
   const [isLooped, setIsLooped] = React.useState(false); // state to check if main audio should repeat the song
@@ -309,6 +308,7 @@ export const App = () => {
       /* proper way to clear audio */
       if (playPromise !== undefined) {
         playPromise.then(() => {
+          setIsPlaying(false);
           mainAudio.pause();
 
           mainAudio.setAttribute("src", ""); // clear src
@@ -339,6 +339,7 @@ export const App = () => {
     rightPaneContent.classList.add("noTouching"); // prevent user from clicking too fast
 
     let unknownAlbum = document.querySelector(".album[data-album='unknown']");
+    let globalAlbumArt = document.getElementById("album") as HTMLDivElement;
 
     if (unknownAudioList && unknownAlbum) {
       while (unknownAudioList!.firstChild) {
@@ -370,6 +371,8 @@ export const App = () => {
       }
     }
 
+    globalAlbumArt.setAttribute("data-cover", "false");
+    globalAlbumArt.style.backgroundImage = "";
     clearMainAudio();
 
     songs = [];
@@ -378,7 +381,6 @@ export const App = () => {
     /* checks if any file was selected or not */
     if (!audioFiles || !audioFiles.length) {
       alert("No files selected");
-      clearMainAudio();
     } else {
       /**
        *
@@ -492,7 +494,10 @@ export const App = () => {
 
           /* 2 other options only if title of [Album] isn't undefined */
         } else if (songAlbum) {
-          let albumsContainers = document.querySelector(`.album[data-album='${songAlbum}']`); // gets div with same album as the current file
+          let albumsContainers = document.querySelector(
+            `.album[data-album="${songAlbum.replace(/\\([\s\S])|(")/g, "\\$1$2")}"]`
+          ); // gets div with same album as the current file
+          /* replace function to escape dobule quotes if a string contains any */
 
           /* 2nd option - if [Album] already exists */
           if (albumsContainers) {
@@ -677,18 +682,26 @@ export const App = () => {
     /* if playlist contains audios and any song is already loaded */
     if (playlist.length > 0 && mainAudio.src) {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
+      let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
 
+      /* when user chooses to enable the shuffle option
+      shuffledPlaylist is selected instead of playlist */
       if (isShuffledRef.current) {
         let indexOfCurrent = shuffledPlaylist.indexOf(currentPlaying);
 
+        /* if reaches beginning of the playlist plays the last audio
+         otherwise plays previous audio from the playlist */
         if (indexOfCurrent === 0) {
           let previousIndex = shuffledPlaylist[shuffledPlaylist.length - 1];
           let previousAudio = previousIndex.getElementsByTagName("audio")[0];
 
           playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
 
-          let songName = previousIndex.getElementsByClassName("song__title")[0];
-          let artist = songName.getAttribute("data-artist");
+          let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let albumTitle = previousIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
+
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
 
           document.title = artist + " - " + songName.textContent;
         } else {
@@ -697,16 +710,20 @@ export const App = () => {
 
           playNextOrPrevious(mainAudio, previousAUdio, currentPlaying, previousIndex);
 
-          let songName = previousIndex.getElementsByClassName("song__title")[0];
-          let artist = songName.getAttribute("data-artist");
+          let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
+          let albumTitle = previousIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
+
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
 
           document.title = artist + " - " + songName.textContent;
         }
       } else {
+        /* default playlist - no shuffle enabled */
         let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
 
         /* if reaches beginning of the playlist plays the last audio
-         otherwise plays previous audio from the playlsit */
+         otherwise plays previous audio from the playlist */
         if (indexOfCurrent === 0) {
           let previousIndex = playlist[playlist.length - 1];
           let previousAudio = previousIndex.getElementsByTagName("audio")[0];
@@ -714,19 +731,25 @@ export const App = () => {
           playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
 
           let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          let albumTitle = previousIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
 
-          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
+
+          document.title = artist + " - " + songName.textContent; 
         } else {
-          let previousIndex = playlist[indexOfCurrent - 1]; // gets previous index (current - 1)
+          let previousIndex = playlist[indexOfCurrent - 1]; // gets previous index (current - 1) element
           let previousAudio = previousIndex.getElementsByTagName("audio")[0]; // retrieves previous audio from playlist
 
           playNextOrPrevious(mainAudio, previousAudio, currentPlaying, previousIndex);
 
           let songName = previousIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          let albumTitle = previousIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
 
-          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
+
+          document.title = artist + " - " + songName.textContent; 
         }
       }
     }
@@ -741,36 +764,48 @@ export const App = () => {
     /* if playlist contains audios and any song is already loaded */
     if (playlist.length > 0 && mainAudio.src) {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
+      let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
 
+      /* when user chooses to enable the shuffle option
+      shuffledPlaylist is selected instead of playlist */
       if (isShuffledRef.current) {
-        let indexOfCurrent = shuffledPlaylist.indexOf(currentPlaying);
+        let indexOfCurrent = shuffledPlaylist.indexOf(currentPlaying); // get index of current audio in the shuffledPlaylist
 
-        if (indexOfCurrent === playlist.length - 1) {
+        /* if reaches end of the shuffledPlaylist plays the first audio
+         otherwise plays next audio from the shuffledPlaylist */
+        if (indexOfCurrent === shuffledPlaylist.length - 1) {
           let nextIndex = shuffledPlaylist[0];
           let nextAudio = nextIndex.getElementsByTagName("audio")[0];
 
           playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
 
           let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          let albumTitle = nextIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
 
-          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
+
+          document.title = artist + " - " + songName.textContent;
         } else {
-          let nextIndex = shuffledPlaylist[indexOfCurrent + 1];
-          let nextAudio = nextIndex.getElementsByTagName("audio")[0];
+          let nextIndex = shuffledPlaylist[indexOfCurrent + 1]; // gets next index (current + 1) element
+          let nextAudio = nextIndex.getElementsByTagName("audio")[0]; // retrieves next audio from shuffledPlaylist
 
           playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
 
           let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          let albumTitle = nextIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
 
-          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
+
+          document.title = artist + " - " + songName.textContent;
         }
       } else {
+        /* default playlist - no shuffle enabled */
         let indexOfCurrent = playlist.indexOf(currentPlaying); // get index of current audio in the playlist
 
         /* if reaches end of the playlist plays the first audio
-         otherwise plays next audio from the playlsit */
+         otherwise plays next audio from the playlist */
         if (indexOfCurrent === playlist.length - 1) {
           let nextIndex = playlist[0];
           let nextAudio = nextIndex.getElementsByTagName("audio")[0];
@@ -778,19 +813,25 @@ export const App = () => {
           playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
 
           let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          let albumTitle = nextIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
 
-          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
+
+          document.title = artist + " - " + songName.textContent;
         } else {
-          let nextIndex = playlist[indexOfCurrent + 1]; // gets next index (current + 1)
+          let nextIndex = playlist[indexOfCurrent + 1]; // gets next index (current + 1) element
           let nextAudio = nextIndex.getElementsByTagName("audio")[0]; // retrieves next audio from playlist
 
           playNextOrPrevious(mainAudio, nextAudio, currentPlaying, nextIndex);
 
           let songName = nextIndex.getElementsByClassName("song__title")[0]; // gets <div> with song name
-          let artist = songName.getAttribute("data-artist"); // gets artist name from data attribute
+          let albumTitle = nextIndex.getAttribute("data-album") as string; // gets albumTitle from data attribute
+          let artist = songName.getAttribute("data-artist") as string; // gets artist name from data attribute
 
-          document.title = artist + " - " + songName.textContent; // sets the title of document to the current song
+          setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
+
+          document.title = artist + " - " + songName.textContent;
         }
       }
     }
@@ -842,6 +883,37 @@ export const App = () => {
     }
   }
 
+  /* --------------------------------------------------------------------- */
+  /* --------| changes the global artwork on Click | Prev | Next |-------- */
+  /* --------------------------------------------------------------------- */
+  function setGlobalAlbumArt(albumTitle: string, artistTitle: string, globalAlbum: HTMLDivElement) {
+    if (albumTitle === "Unknown") {
+      globalAlbum.style.backgroundImage = `url(${UnknownImage})`; // default image
+      globalAlbum.setAttribute("data-cover", "false"); // data to tell if there is album art so the borders AND reflection should appear if is enabled
+    } else {
+      let albumEL = document.querySelector(
+        `.album[data-album="${albumTitle.replace(/\\([\s\S])|(")/g, "\\$1$2")}"][data-artist="${artistTitle.replace(
+          /\\([\s\S])|(")/g,
+          "\\$1$2"
+        )}"]`
+      ) as HTMLDivElement; // gets album from rightPane with same AlbumTitle and AlbumArtist + escape double quotes
+      let albumImg = albumEL.getElementsByTagName("img")[0] as HTMLImageElement; // gets the <img> inside ALBUM <div>
+
+      let imgSrc = albumImg.src; // get the src from <img> inside ALBUM <div> element
+
+      globalAlbum.style.backgroundImage = `url(${imgSrc})`; // replaces the global art work with current
+
+      /* condition to tell if data attribute should be set to TRUE of FALSE
+      if ALBUM <img> has no cover art doesn't set the borders otherwise
+      if it has cover art sets data attribute to true and border is displayed */
+      if (albumImg.classList.contains("noAlbumCover")) {
+        globalAlbum.setAttribute("data-cover", "false");
+      } else {
+        globalAlbum.setAttribute("data-cover", "true");
+      }
+    }
+  }
+
   /* ------------------------------------------------------------- */
   /* --------| Plays selected audio from <li> on dbClick |-------- */
   /* ------------------------------------------------------------- */
@@ -862,9 +934,9 @@ export const App = () => {
 
       let currentAudio = currentTarget.getElementsByTagName("audio")[0]; // gets <audio> from selected <li> element
       let songNameEL = currentTarget.getElementsByClassName("song__title")[0]; // gets <div> with song name
-      let artist = songNameEL.getAttribute("data-artist"); // gets artist name from data attribute
+      let artist = songNameEL.getAttribute("data-artist") as string; // gets artist name from data attribute
 
-      let albumTitle = currentTarget.getAttribute("data-album"); // get album title from data attribute
+      let albumTitle = currentTarget.getAttribute("data-album") as string; // get album title from data attribute
       let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
 
       mainAudio.src = currentAudio.src; // gets src from selected audio
@@ -888,24 +960,7 @@ export const App = () => {
       playbarDuration.textContent = convertSeconds(currentAudio.duration); // sets current duration in DOM
       currentTarget.classList.add("nowPlaying"); // adds indicator on current <li>
 
-      if (albumTitle === "Unknown") {
-        globalAlbumEL.style.backgroundImage = `url(${UnknownImage})`;
-        globalAlbumEL.setAttribute("data-cover", "false");
-      } else {
-        let albumEL = document.querySelector(
-          `.album[data-album='${albumTitle}'][data-artist='${artist}']`
-        ) as HTMLDivElement;
-        let albumImg = albumEL.getElementsByTagName("img")[0] as HTMLImageElement;
-
-        let imgSrc = albumImg.src;
-        if (albumImg.classList.contains("noAlbumCover")) {
-          globalAlbumEL.style.backgroundImage = `url(${imgSrc})`;
-          globalAlbumEL.setAttribute("data-cover", "false");
-        } else {
-          globalAlbumEL.style.backgroundImage = `url(${imgSrc})`;
-          globalAlbumEL.setAttribute("data-cover", "true");
-        }
-      }
+      setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
 
       document.title = artist + " - " + songNameEL.textContent; // sets the title of document to the current song
     }

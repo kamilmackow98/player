@@ -38,8 +38,7 @@ const Navbar = (props: Props) => {
 export let LinksCollection: Links[] = [
   { name: "File" },
   { name: "Album" },
-  { name: "Lyrics" },
-  { name: "Theme" }
+  { name: "Lyrics" }
 ];
 
 export default Navbar;

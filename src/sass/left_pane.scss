@@ -181,7 +181,7 @@
   background-image: url("../images/unknown.png");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: cover;
+  background-size: 100% 100%; // can be set to "cover" but some big images will have relfection that doesn't match up
   position: relative;
 
   height: auto;
@@ -222,7 +222,7 @@
       background-size: cover;
       opacity: 0.5;
 
-      border: 4px solid lighten($primary, 6%);
+      border: 4px solid lighten($primary, 8%);
       border-bottom: none;
 
       position: absolute;
@@ -269,9 +269,7 @@
     height: 100%;
     width: 100%;
 
-    border: 1px solid red;
-
-    min-width: 200px;
+    min-width: 100px;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -280,6 +278,26 @@
     align-items: center;
     text-align: center;
     display: flex;
+
+    .lyrics__button {
+      border: 3px solid lighten($primary, 4%);
+      padding: 10px;
+      width: 50%;
+
+      transition: border 200ms ease;
+      max-width: 300px;
+      min-width: 100px;
+      display: block;
+
+      &.hide {
+        display: none;
+      }
+
+      &:hover {
+        border: 3px solid $secondary;
+        cursor: pointer;
+      }
+    }
   }
 }
 
@@ -407,10 +425,6 @@
       }
     }
   }
-}
-
-#theme {
-  border: 1px solid green;
 }
 
 /* --------------------------- */
