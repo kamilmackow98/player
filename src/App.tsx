@@ -10,15 +10,13 @@ import UnknownImage from "./images/unknown.png";
 import "./sass/app.scss";
 
 /**
- * TODO : find why can't play songs from Chevelle's album Wonder what's next
- *
+ * TODO : check file types
  * TODO : when adding files to existing album add also check if the artist of the album is the same
  * TODO : function to sort albums by ARTIST NAME in playlist from A to Z on adding files
- * TODO : check file types
- * TODO : add checkbox/button to toggle album reflection ON/OFF
- * TODO : add keyboard shortcuts (Next-Previous maybe Ctrl+L and Ctrl+J)
  * TODO : add color text + icons in panes as the variable theme ($third variable)
+ *
  * TODO : right click context menu - maybe in future add some options
+ *
  * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has an EventListener
  */
 
@@ -148,6 +146,25 @@ export const App = () => {
       }
     }
 
+    /* ---------------------------------------------------------------- */
+    /* --------| Prev Or Next on "J" Or "L" press on keyboard |-------- */
+    /* ---------------------------------------------------------------- */
+    function keyboardPrevNext(event: KeyboardEvent) {
+      if (mainAudio.src) {
+        switch (event.keyCode) {
+          case 74:
+            event.preventDefault();
+            previous();
+            break;
+
+          case 76:
+            event.preventDefault();
+            next();
+            break;
+        }
+      }
+    }
+
     /* ----------------------------------------------------------------------------- */
     /* --------| when mainAudio is / starts playing sets isPlaying to true |-------- */
     /* ----------------------------------------------------------------------------- */
@@ -181,6 +198,7 @@ export const App = () => {
      * * Adds event listeners on components mount
      */
     window.addEventListener("keydown", spacebarToggle);
+    window.addEventListener("keydown", keyboardPrevNext);
 
     progressBar.addEventListener("mousemove", progressTimestamp);
     progressBar.addEventListener("mouseleave", hideTimestamp);
@@ -198,6 +216,7 @@ export const App = () => {
      */
     return function cleanupListener() {
       window.removeEventListener("keydown", spacebarToggle);
+      window.removeEventListener("keydown", keyboardPrevNext);
 
       progressBar.removeEventListener("mousemove", progressTimestamp);
       progressBar.removeEventListener("mouseleave", setCurrentTime);
@@ -862,7 +881,6 @@ export const App = () => {
       playPromise
         .then((_) => {
           let playbarDuration = document.getElementsByClassName("duration")[0]; // duration element in the App
-
           /* update audio duration for prev/next 
              update audio src from prev/next and load it */
           playbarDuration.textContent = convertSeconds(nextPrevAudio.duration);
@@ -942,7 +960,7 @@ export const App = () => {
   /* ------------------------------------------------------------- */
   /* --------| Plays selected audio from <li> on dbClick |-------- */
   /* ------------------------------------------------------------- */
-  function handleLiClick(event: MouseEvent) {
+  async function handleLiClick(event: MouseEvent) {
     let currentTarget = event.currentTarget as HTMLLIElement; // currentTarget so only <li> no child elements
 
     resetLyrics();
@@ -971,18 +989,15 @@ export const App = () => {
 
       let playPromise = mainAudio.play();
 
-      // add condition if audio has already src ??? and then check for promise
-
       /* checks if promise isn't undefined after new src load and then plays audio */
       if (playPromise !== undefined) {
         playPromise
-          .then((_) => {
+          .then(() => {
             mainAudio.play();
             setIsPlaying(true);
           })
           .catch((error) => {
-            console.log("wtf " + error);
-            alert("Can't play this song " + error);
+            alert("Can't play this song");
           });
       }
 
