@@ -10,6 +10,8 @@ import UnknownImage from "./images/unknown.png";
 import "./sass/app.scss";
 
 /**
+ * TODO : find why can't play songs from Chevelle's album Wonder what's next
+ *
  * TODO : when adding files to existing album add also check if the artist of the album is the same
  * TODO : function to sort albums by ARTIST NAME in playlist from A to Z on adding files
  * TODO : check file types
@@ -42,7 +44,7 @@ let playlist: Array<HTMLLIElement> = []; // playlist array -> only <li> elements
 let shuffledPlaylist: Array<HTMLLIElement> = []; // same as playlist but random songs
 
 export const App = () => {
-  const [activeIndex, setIndex] = React.useState(2); // initial index set to 0 - File Tab
+  const [activeIndex, setIndex] = React.useState(0); // initial index set to 0 - File Tab
   const [isPlaying, setIsPlaying] = React.useState(false); // state to check if audio is playing
   const [isMuted, setIsMuted] = React.useState(false); // state to check if main audio is muted
   const [isLooped, setIsLooped] = React.useState(false); // state to check if main audio should repeat the song
@@ -375,6 +377,8 @@ export const App = () => {
     globalAlbumArt.style.backgroundImage = "";
     clearMainAudio();
 
+    resetLyrics();
+
     songs = [];
     playlist = [];
 
@@ -684,6 +688,8 @@ export const App = () => {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
       let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
 
+      resetLyrics();
+
       /* when user chooses to enable the shuffle option
       shuffledPlaylist is selected instead of playlist */
       if (isShuffledRef.current) {
@@ -736,7 +742,7 @@ export const App = () => {
 
           setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
 
-          document.title = artist + " - " + songName.textContent; 
+          document.title = artist + " - " + songName.textContent;
         } else {
           let previousIndex = playlist[indexOfCurrent - 1]; // gets previous index (current - 1) element
           let previousAudio = previousIndex.getElementsByTagName("audio")[0]; // retrieves previous audio from playlist
@@ -749,7 +755,7 @@ export const App = () => {
 
           setGlobalAlbumArt(albumTitle, artist, globalAlbumEL);
 
-          document.title = artist + " - " + songName.textContent; 
+          document.title = artist + " - " + songName.textContent;
         }
       }
     }
@@ -765,6 +771,8 @@ export const App = () => {
     if (playlist.length > 0 && mainAudio.src) {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
       let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
+
+      resetLyrics();
 
       /* when user chooses to enable the shuffle option
       shuffledPlaylist is selected instead of playlist */
@@ -914,11 +922,30 @@ export const App = () => {
     }
   }
 
+  /* ------------------------------------------------------ */
+  /* --------| resets lyrics from previous search |-------- */
+  /* ------------------------------------------------------ */
+  function resetLyrics() {
+    let lyricsText = document.getElementsByClassName("lyrics__text")[0]; // lyrics text for specific song
+    let lyricsAttr = lyricsText.getAttribute("data-lyrics"); // gets data attribute to check if <div> has lyrics text
+
+    /* if <div> text has already lyrics from previous search */
+    if (lyricsAttr === "true") {
+      let lyricsBtn = document.getElementsByClassName("lyrics__button")[0] as HTMLDivElement; // gets button
+
+      lyricsBtn.classList.remove("hide"); // displays button again
+      lyricsText.textContent = ""; // removes previous lyrics
+      lyricsText.classList.remove("show"); // hides lyrics__text <div>
+    }
+  }
+
   /* ------------------------------------------------------------- */
   /* --------| Plays selected audio from <li> on dbClick |-------- */
   /* ------------------------------------------------------------- */
   function handleLiClick(event: MouseEvent) {
     let currentTarget = event.currentTarget as HTMLLIElement; // currentTarget so only <li> no child elements
+
+    resetLyrics();
 
     /* re-shuffle playlist if isShuffled was enabled */
     if (isShuffledRef.current) {
@@ -944,12 +971,19 @@ export const App = () => {
 
       let playPromise = mainAudio.play();
 
+      // add condition if audio has already src ??? and then check for promise
+
       /* checks if promise isn't undefined after new src load and then plays audio */
       if (playPromise !== undefined) {
-        playPromise.then((_) => {
-          mainAudio.play();
-          setIsPlaying(true);
-        });
+        playPromise
+          .then((_) => {
+            mainAudio.play();
+            setIsPlaying(true);
+          })
+          .catch((error) => {
+            console.log("wtf " + error);
+            alert("Can't play this song " + error);
+          });
       }
 
       /* removes indicator from previous <li> selection if there is any */

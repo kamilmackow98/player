@@ -269,6 +269,10 @@
     height: 100%;
     width: 100%;
 
+    font-family: "Saira-Medium";
+    font-size: 13px;
+    color: $third;
+
     min-width: 100px;
 
     overflow: hidden;
@@ -279,6 +283,15 @@
     text-align: center;
     display: flex;
 
+    .lyrics__text {
+      white-space: pre-wrap;
+      display: none;
+
+      &.show {
+        display: flex;
+      }
+    }
+
     .lyrics__button {
       border: 3px solid lighten($primary, 4%);
       padding: 10px;
@@ -288,6 +301,8 @@
       max-width: 300px;
       min-width: 100px;
       display: block;
+
+      font-size: 14px;
 
       &.hide {
         display: none;

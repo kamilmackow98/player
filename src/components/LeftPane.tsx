@@ -10,8 +10,8 @@ interface Props {
 }
 
 const API_SEARCH = "https://api.happi.dev/v1/music?q=";
-const API_LYRICS = "https://api.happi.dev/v1/music/artists/";
 const API_KEY = "a785bdcxq0qLhDRbaymzbBBm3qFQkQ0IZZJyrLCZ5ywg2ZyswhL0fYpp";
+let API_LYRICS = "";
 
 const LeftPane = (props: Props) => {
   const { index, handleInputs } = props;
@@ -25,12 +25,51 @@ const LeftPane = (props: Props) => {
     } else {
       let songTitleEl = currentPlaying.getElementsByTagName("div")[0] as HTMLDivElement;
 
-      let artist = songTitleEl.getAttribute("data-artist");
-      let songTitle = songTitleEl.textContent;
+      let artist = songTitleEl.getAttribute("data-artist") as string;
+      let songTitle = songTitleEl.textContent as string;
 
-      await fetch(API_SEARCH + artist + " " + songTitle + "&apikey=" + API_KEY)
+      artist = encodeURIComponent(artist.trim());
+      songTitle = encodeURIComponent(songTitle.trim());
+
+      await fetch(API_SEARCH + artist + "%20" + songTitle + "&apikey=" + API_KEY)
         .then((response) => response.json())
-        .then((data) => console.log(data));
+        .then((data) => {
+          if (data.success && data.result.length > 0) {
+            let firstResult = data.result[0];
+
+            if (!firstResult.haslyrics) {
+              alert("No Lyrics available");
+            } else {
+              // console.log(firstResult.id_artist, firstResult.id_album, firstResult.id_track)
+              API_LYRICS = firstResult.api_lyrics;
+
+              fetch(API_LYRICS + "?apikey=" + API_KEY)
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    let lyrics = data.result.lyrics;
+
+                    let lyricsText = document.getElementsByClassName("lyrics__text")[0] as HTMLDivElement;
+                    let lyricsBtn = document.getElementsByClassName("lyrics__button")[0] as HTMLDivElement;
+
+                    lyricsBtn.classList.add("hide");
+                    lyricsText.classList.add("show");
+
+                    lyricsText.setAttribute("data-lyrics", "true");
+                    lyricsText.textContent = lyrics;
+                  }
+                })
+                .catch((error) => {
+                  alert("Something went wrong " + error);
+                });
+            }
+          } else {
+            alert("No Lyrics available");
+          }
+        })
+        .catch((error) => {
+          alert("Something went wrong " + error);
+        });
     }
   }
 
@@ -96,7 +135,8 @@ const LeftPane = (props: Props) => {
             )}
 
             {content.id === "lyrics" && (
-              <div className="lyrics__content">
+              <div className="lyrics__content" data-lyrics="false">
+                <div className="lyrics__text"></div>
                 <div className="lyrics__button" onClick={searchLyrics}>
                   Search lyrics
                 </div>
