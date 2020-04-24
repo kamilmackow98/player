@@ -703,7 +703,7 @@ export const App = () => {
     let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement; // main <audio>
 
     /* if playlist contains audios and any song is already loaded */
-    if (playlist.length > 0 && mainAudio.src) {
+    if (playlist.length > 1 && mainAudio.src) {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
       let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
 
@@ -787,7 +787,7 @@ export const App = () => {
     let mainAudio = document.getElementById("mainAudio") as HTMLAudioElement; // main <audio>
 
     /* if playlist contains audios and any song is already loaded */
-    if (playlist.length > 0 && mainAudio.src) {
+    if (playlist.length > 1 && mainAudio.src) {
       let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // current song that was/is selected
       let globalAlbumEL = document.getElementById("album") as HTMLDivElement;
 
