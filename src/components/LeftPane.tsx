@@ -17,46 +17,52 @@ const LeftPane = (props: Props) => {
   const { index, handleInputs } = props;
   const [isChecked, setIsChecked] = React.useState(false);
 
+  /* --------------------------------------------------------- */
+  /* --------| search lyrics with fetch on Happi API |-------- */
+  /* --------------------------------------------------------- */
   async function searchLyrics() {
-    let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement;
+    let currentPlaying = document.querySelector(".nowPlaying") as HTMLLIElement; // selected / playing song
 
     if (!currentPlaying) {
       alert("No songs selected or loaded");
     } else {
-      let songTitleEl = currentPlaying.getElementsByTagName("div")[0] as HTMLDivElement;
+      let songTitleEl = currentPlaying.getElementsByTagName("div")[0] as HTMLDivElement; // <div> element from selected / current <li>
 
-      let artist = songTitleEl.getAttribute("data-artist") as string;
-      let songTitle = songTitleEl.textContent as string;
+      let artist = songTitleEl.getAttribute("data-artist") as string; // artist from data attribute
+      let songTitle = songTitleEl.textContent as string; // song title from HTML
 
-      artist = encodeURIComponent(artist.trim());
+      /* URL encode and trim string (%20 = spaces etc.) */
+      artist = encodeURIComponent(artist.trim()); 
       songTitle = encodeURIComponent(songTitle.trim());
 
+      /* Happi API fetch - search query -> API query + artist + song title */
       await fetch(API_SEARCH + artist + "%20" + songTitle + "&apikey=" + API_KEY)
         .then((response) => response.json())
         .then((data) => {
           if (data.success && data.result.length > 0) {
-            let firstResult = data.result[0];
+            let firstResult = data.result[0]; // gets first song from Array with results
 
+            /* lyrics might be not avaiable for some songs OR artists */
             if (!firstResult.haslyrics) {
               alert("No Lyrics available");
             } else {
-              // console.log(firstResult.id_artist, firstResult.id_album, firstResult.id_track)
-              API_LYRICS = firstResult.api_lyrics;
+              API_LYRICS = firstResult.api_lyrics; // gets lyrics API only if song has lyrics from result
 
+              /* second fetch but with lyrics API received from previous fetch */
               fetch(API_LYRICS + "?apikey=" + API_KEY)
                 .then((response) => response.json())
                 .then((data) => {
                   if (data.success) {
-                    let lyrics = data.result.lyrics;
+                    let lyrics = data.result.lyrics; // finally gets the lyrics 
 
-                    let lyricsText = document.getElementsByClassName("lyrics__text")[0] as HTMLDivElement;
-                    let lyricsBtn = document.getElementsByClassName("lyrics__button")[0] as HTMLDivElement;
+                    let lyricsText = document.getElementsByClassName("lyrics__text")[0] as HTMLDivElement; // gets HTML element to display lyrics
+                    let lyricsBtn = document.getElementsByClassName("lyrics__button")[0] as HTMLDivElement; // gets button
 
-                    lyricsBtn.classList.add("hide");
-                    lyricsText.classList.add("show");
+                    lyricsBtn.classList.add("hide"); // hides the button
+                    lyricsText.classList.add("show"); // shows lyrics HTML element
 
-                    lyricsText.setAttribute("data-lyrics", "true");
-                    lyricsText.textContent = lyrics;
+                    lyricsText.setAttribute("data-lyrics", "true"); // sets data attribute to later check if can reset lyrics TAB
+                    lyricsText.textContent = lyrics; // displays lyrics on page
                   }
                 })
                 .catch((error) => {
