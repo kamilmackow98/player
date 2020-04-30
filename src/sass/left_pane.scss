@@ -456,6 +456,10 @@
       width: 60%;
     }
 
+    .drag-files.highlight {
+      color: red;
+    }
+
     .open-files {
       i {
         margin-bottom: 0;
@@ -505,6 +509,17 @@
         background-color: transparent;
         border: 3px solid $secondary;
         outline: none;
+      }
+    }
+
+    .drag-files {
+      & i,
+      & span {
+        pointer-events: none !important;
+      }
+
+      &.highlight {
+        background-color: $third;
       }
     }
 

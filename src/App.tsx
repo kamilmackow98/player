@@ -10,14 +10,11 @@ import UnknownImage from "./images/unknown.png";
 import "./sass/app.scss";
 
 /**
- * TODO : check file types
- * TODO : when adding files to existing album add also check if the artist of the album is the same
- * TODO : function to sort albums by ARTIST NAME in playlist from A to Z on adding files
- * TODO : add color text + icons in panes as the variable theme ($third variable)
+ * TODO : right click context menu - maybe in future add some options like (delete song / <li> etc.)
+ * TODO : --> OR when adding files check also for the ARTIST and ALBUM not only ALBUM
+ * TODO : --> function to sort albums by ARTIST then by ALBUM on adding files
  *
- * TODO : right click context menu - maybe in future add some options
- *
- * ! Event delegation apparently is discouraged in React. React handles it on its own so each <li> has an EventListener
+ * ! Event delegation apparently is discouraged in React. React handles it on its own. So each <li> has an EventListener
  */
 
 interface fileInfo {
@@ -349,33 +346,30 @@ export const App = () => {
     }
   }
 
-  /* fire on change when user opens files */
-  async function openFiles(event: ChangeEvent): Promise<{ done: boolean }> {
+  /* --------------------------------------------------------- */
+  /* --------| clears / resets app to default state  |-------- */
+  /* --------------------------------------------------------- */
+  function resetApp() {
     let rightPaneContent = document.getElementsByClassName("right-pane__content")[0] as HTMLDivElement; // container with all [albums] <div>
-    let allAlbumsNotUnkown = document.querySelectorAll(".album:not(.unknown)"); // get all the albums but not unknown
-    let target = event.currentTarget as HTMLInputElement; // current input [openFiles]
-    let audioFiles = target.files; // files from the input
-    let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list");
+    let allAlbumsNotUnknown = document.querySelectorAll(".album:not(.unknown)"); // gets all the albums but not unknown
+    let globalAlbumArt = document.getElementById("album") as HTMLDivElement; // gets main cover art from Album TAB
 
-    rightPaneContent.classList.add("noTouching"); // prevent user from clicking too fast
+    let unknownAudioList = document.querySelector(".album[data-album='unknown'] .audio__list"); // gets <ul> from unknown album
+    let unknownAlbum = document.querySelector(".album[data-album='unknown']"); // gets unknown album
 
-    let unknownAlbum = document.querySelector(".album[data-album='unknown']");
-    let globalAlbumArt = document.getElementById("album") as HTMLDivElement;
+    rightPaneContent.classList.add("noTouching"); // prevent user from clicking too fast when opening new files
 
+    /* removes every DOM <li> from "unknown" <ul> */
     if (unknownAudioList && unknownAlbum) {
       while (unknownAudioList!.firstChild) {
         unknownAudioList!.removeChild(unknownAudioList!.firstChild);
       }
-      unknownAlbum.classList.add("hidden");
+      unknownAlbum.classList.add("hidden"); // hides the unknown album <div>
     }
 
-    allAlbumsNotUnkown.forEach(function (child) {
-      rightPaneContent.removeChild(child);
-    });
-
     /* if right pane has already files from previous selection or some magically appear
-       checks if there's any div with "album" class but not the hidden <div> with unknown album */
-    if (allAlbumsNotUnkown.length) {
+       checks if there's any <div> with "album" class but not the hidden unknown album */
+    if (allAlbumsNotUnknown.length) {
       let imgElements = document.querySelectorAll(".album__cover:not(.unknownImg)");
       let audioElements = document.querySelectorAll(".song__audio");
 
@@ -388,276 +382,34 @@ export const App = () => {
       /* releases from memory all URL objects from <audio> files src */
       for (let l = 0; l < audioElements.length; l++) {
         let oldAudio = audioElements[l] as HTMLAudioElement;
-        URL.revokeObjectURL(oldAudio.src); // release previous URL objects / src for audio files
+        URL.revokeObjectURL(oldAudio.src);
       }
     }
 
-    globalAlbumArt.setAttribute("data-cover", "false");
-    globalAlbumArt.style.backgroundImage = "";
-    clearMainAudio();
+    /* removes each album <div> from right pane content */
+    allAlbumsNotUnknown.forEach(function (child) {
+      rightPaneContent.removeChild(child);
+    });
 
+    globalAlbumArt.setAttribute("data-cover", "false"); // data attribute for the CSS rules (border, shadows etc.)
+    globalAlbumArt.style.backgroundImage = ""; // clears global cover art image
+
+    document.title = "Music Player"; // default doc title
+
+    clearMainAudio();
     resetLyrics();
 
-    songs = [];
-    playlist = [];
-
-    /* checks if any file was selected or not */
-    if (!audioFiles || !audioFiles.length) {
-      alert("No files selected");
-    } else {
-      /**
-       *
-       * * <div class="album" />
-       *
-       * * <div class="album__info" />
-       * *    <img class="album__cover" />
-       * *    <div class="band__name" />
-       * *    <div class="album__title" />
-       *
-       * *        <div class="title" />
-       * *        <span class="line" />
-       * *        <span class="album__year" />
-       *
-       * *    <span class="album__genre" />
-       *
-       * * <ul class="audio__list" />
-       *
-       * *    <li class="song" />
-       *
-       * *        <audio class="song__audio" />
-       * *        <span class="track-nb" />
-       * *        <div class="song__title" />
-       * *        <span class="song__duration" />
-       *
-       */
-
-      for (let i = 0; i < audioFiles.length; i++) {
-        /* for each audio file */
-
-        const durationEl = document.createElement("span");
-        const audioEl = document.createElement("audio");
-        const trackEl = document.createElement("span");
-        const titleEl = document.createElement("div");
-        const liEl = document.createElement("li");
-
-        /**
-         * --------------------------------
-         * * Set className for each element
-         * --------------------------------
-         */
-
-        durationEl.classList.add("song__duration");
-        audioEl.classList.add("song__audio");
-        titleEl.classList.add("song__title");
-        trackEl.classList.add("track-nb");
-        liEl.classList.add("song");
-
-        // create blob string for each imported audio file and add src for each <audio>
-        objectUrl = URL.createObjectURL(audioFiles[i]);
-        audioEl.setAttribute("src", objectUrl);
-
-        audioEl.onloadedmetadata = function () {
-          durationEl.textContent = convertSeconds(audioEl.duration);
-        };
-
-        let fileInfo = await readFileInfo(audioFiles[i])
-          .then((tagInfo) => {
-            return tagInfo as fileInfo;
-          })
-          .catch((error) => {
-            console.log(error);
-            return error;
-          });
-
-        const { trackNb, songTitle, songAlbum, albumGenre, albumYear, artist, picture, type } = fileInfo;
-
-        audioEl.muted = true;
-        liEl.setAttribute("data-track", trackNb);
-        liEl.setAttribute("data-album", songAlbum);
-        trackEl.textContent = trackNb + ".";
-        titleEl.setAttribute("data-artist", artist);
-        titleEl.textContent = songTitle === "Unknown" ? `${audioFiles[i].name.replace(/\.[^/.]+$/, "")}` : songTitle;
-
-        liEl.appendChild(audioEl); // add <audio> with src
-        liEl.appendChild(trackEl); // add <span> with track number
-        liEl.appendChild(titleEl); // add <div> with title
-        liEl.appendChild(durationEl); // add <span> with duration
-        liEl.addEventListener("dblclick", handleLiClick);
-
-        /* 3 options :
-                  - song album is unknown - add to the Album with data-album="unknown" and remove .hidden class to display it
-                  - song album was already added - add song to the the existing Album with data-album="old-album"
-                  - song album is a new one - create new Album <div> with data-album="new-album" */
-
-        /* 1st option - if [Album] is unknown */
-        if (songAlbum === "Unknown") {
-          let unknownAlbumContainer = document.querySelector(".album[data-album='unknown']");
-
-          if (unknownAlbumContainer && unknownAudioList) {
-            unknownAlbumContainer.classList.remove("hidden");
-            unknownAudioList.appendChild(liEl);
-          }
-
-          if (songs.length) {
-            let indexToAppendUnknown = songs
-              .map((e) => {
-                return e.albumTitle;
-              })
-              .indexOf("Unknown");
-
-            if (indexToAppendUnknown === -1) {
-              songs.unshift({ albumTitle: "Unknown", liElements: [liEl] });
-            } else {
-              let unknownSongs = songs[indexToAppendUnknown].liElements as Array<HTMLLIElement>;
-              unknownSongs.push(liEl);
-            }
-          } else {
-            songs.push({ albumTitle: "Unknown", liElements: [liEl] });
-          }
-
-          /* 2 other options only if title of [Album] isn't undefined */
-        } else if (songAlbum) {
-          let albumsContainers = document.querySelector(
-            `.album[data-album="${songAlbum.replace(/\\([\s\S])|(")/g, "\\$1$2")}"]`
-          ); // gets div with same album as the current file
-          /* replace function to escape dobule quotes if a string contains any */
-
-          /* 2nd option - if [Album] already exists */
-          if (albumsContainers) {
-            let ulList = albumsContainers.getElementsByTagName("ul")[0];
-            let songsList = ulList.getElementsByClassName("song");
-
-            let trackNbArray = [];
-
-            for (let j = 0; j < songsList.length; j++) {
-              let trackNumbers = songsList[j].getAttribute("data-track");
-              trackNbArray.push(trackNumbers);
-            }
-
-            trackNbArray.push(trackNb);
-            trackNbArray.sort();
-
-            let indexToAppend = trackNbArray.indexOf(trackNb);
-
-            let albumIndex = songs
-              .map((e) => {
-                return e.albumTitle;
-              })
-              .indexOf(songAlbum);
-
-            let songsInObjects = songs[albumIndex].liElements;
-
-            if (indexToAppend === 0 && songsInObjects) {
-              ulList.insertBefore(liEl, songsList[0]);
-              songsInObjects.splice(0, 0, liEl);
-            } else if (songsList[indexToAppend] && songsInObjects) {
-              ulList.insertBefore(liEl, songsList[indexToAppend]);
-              songsInObjects.splice(indexToAppend, 0, liEl);
-            } else {
-              ulList.appendChild(liEl);
-
-              if (songsInObjects) {
-                songsInObjects.push(liEl);
-              }
-            }
-          } else {
-            /* 3rd option - create new [Album] since it's neither Unknown neither existing already */
-
-            /**
-             * * Create DOM elements
-             */
-
-            const albumContainerEl = document.createElement("div");
-
-            const albumInfoEl = document.createElement("div");
-
-            const albumImageEl = document.createElement("img");
-            const bandNameEl = document.createElement("div");
-            const albumTitleEl = document.createElement("div");
-            const albumGenreEl = document.createElement("span");
-
-            const titleDivEl = document.createElement("div");
-            const titleLineEl = document.createElement("span");
-            const albumYearEl = document.createElement("span");
-
-            const audioUlEl = document.createElement("ul");
-
-            /**
-             * * Set classes
-             */
-
-            albumContainerEl.classList.add("album");
-            albumInfoEl.classList.add("album__info");
-            albumImageEl.classList.add("album__cover");
-            bandNameEl.classList.add("band__name");
-            albumTitleEl.classList.add("album__title");
-            albumGenreEl.classList.add("album__genre");
-            titleDivEl.classList.add("title");
-            titleLineEl.classList.add("line");
-            albumYearEl.classList.add("album__year");
-            audioUlEl.classList.add("audio__list");
-
-            /**
-             * * Set attributes and data
-             */
-
-            if (picture) {
-              const byteArray = new Uint8Array(picture.data);
-              const blob = new Blob([byteArray], { type });
-              const albumArtUrl = URL.createObjectURL(blob);
-              albumImageEl.src = albumArtUrl;
-            } else {
-              albumImageEl.classList.add("noAlbumCover");
-              albumImageEl.src = UnknownImage;
-            }
-
-            albumContainerEl.setAttribute("data-album", songAlbum);
-            albumContainerEl.setAttribute("data-artist", artist);
-            bandNameEl.textContent = artist;
-            titleDivEl.textContent = songAlbum;
-            albumYearEl.textContent = albumYear;
-            albumGenreEl.textContent = albumGenre;
-            albumInfoEl.addEventListener("dblclick", displayHideList);
-
-            /**
-             * * Append elements
-             */
-
-            rightPaneContent.appendChild(albumContainerEl);
-            albumContainerEl.appendChild(albumInfoEl);
-
-            albumInfoEl.appendChild(albumImageEl);
-            albumInfoEl.appendChild(bandNameEl);
-            albumInfoEl.appendChild(albumTitleEl);
-
-            albumTitleEl.appendChild(titleDivEl);
-            albumTitleEl.appendChild(titleLineEl);
-            albumTitleEl.appendChild(albumYearEl);
-
-            albumInfoEl.appendChild(albumGenreEl);
-
-            albumContainerEl.appendChild(audioUlEl);
-
-            audioUlEl.appendChild(liEl);
-
-            /* add to the array of LiElements with songs */
-            songs.push({ albumTitle: songAlbum, liElements: [liEl] });
-          }
-        } else {
-          alert("Error. Something went wrong");
-        }
-      }
-    }
-    return new Promise((resolve, reject) => {
-      resolve({ done: true });
-      reject({ error: "Something went wrong" });
-    });
+    songs = []; // clears songs array
+    playlist = []; // clears playlist array
   }
 
-  async function addFiles(event: ChangeEvent): Promise<{ done: boolean }> {
+  /* --------------------------------------------------------------- */
+  /* --------| adds all the info and data from files in DOM|-------- */
+  /* --------------------------------------------------------------- */
+  async function addFiles(audioFiles: FileList): Promise<{ done: boolean }> {
     let rightPaneContent = document.getElementsByClassName("right-pane__content")[0] as HTMLDivElement; // container with all [albums] <div>
-    let target = event.currentTarget as HTMLInputElement; // current Input element
-    let audioFiles = target.files; // files from input
+    // let target = event.currentTarget as HTMLInputElement; // current Input element
+    // let audioFiles = target.files; // files from input
 
     /* first checks if there's any file */
     if (!audioFiles || !audioFiles.length) {
@@ -734,7 +486,7 @@ export const App = () => {
           liEl.appendChild(titleEl); // adds <div> with title
           liEl.appendChild(durationEl); // adds <span> with duration
 
-          /* adds eventListener to handle double click */
+          /* eventListener to handle double click on <li> */
           liEl.addEventListener("dblclick", handleLiClick);
 
           /**
@@ -873,14 +625,16 @@ export const App = () => {
                * * Set attributes and data
                */
 
+              /* check for album cover / art */
+              /* picture.data returns an array of data */
               if (picture) {
-                const byteArray = new Uint8Array(picture.data);
-                const blob = new Blob([byteArray], { type });
-                const albumArtUrl = URL.createObjectURL(blob);
-                albumImageEl.src = albumArtUrl;
+                const byteArray = new Uint8Array(picture.data); // creates 8-bit array
+                const blob = new Blob([byteArray], { type }); // creates new blob object from previous array and type of the file
+                const albumArtUrl = URL.createObjectURL(blob); // finally creates an URL object -> src for img
+                albumImageEl.src = albumArtUrl; // sets image src for current album
               } else {
-                albumImageEl.classList.add("noAlbumCover");
-                albumImageEl.src = UnknownImage;
+                albumImageEl.classList.add("noAlbumCover"); // class for CSS rules (no border or shadow etc.)
+                albumImageEl.src = UnknownImage; // sets default image as album cover for current album
               }
 
               albumContainerEl.setAttribute("data-album", songAlbum);
@@ -891,6 +645,7 @@ export const App = () => {
               albumYearEl.textContent = albumYear;
               albumGenreEl.textContent = albumGenre;
 
+              /* eventListener to hide OR show <ul> and <li> elements */
               albumInfoEl.addEventListener("dblclick", displayHideList);
 
               /**
@@ -909,14 +664,15 @@ export const App = () => {
               albumTitleEl.appendChild(albumYearEl);
 
               albumInfoEl.appendChild(albumGenreEl);
-
               albumContainerEl.appendChild(audioUlEl);
-
               audioUlEl.appendChild(liEl);
 
               /* add to the array of LiElements in songs[] */
               songs.push({ albumTitle: songAlbum, liElements: [liEl] });
             }
+          } else {
+            alert("Something went wrong");
+            console.log("Error in addFiles()");
           }
         }
       }
@@ -932,12 +688,17 @@ export const App = () => {
   /* --------| Fires when clicked on [Open files...] |-------- */
   /* --------------------------------------------------------- */
   async function inputOpen(event: ChangeEvent) {
-    /* executes openFiles() and waits for it to be done */
-    await openFiles(event)
+    resetApp();
+
+    let current = event.currentTarget as HTMLInputElement;
+    let audioFiles = current.files as FileList;
+
+    /* waits for addFiles() to be done */
+    await addFiles(audioFiles)
       .then((isDone) => {
         if (isDone) {
-          /* when Promise resolved and openFiles() is done
-          removes class added in openFiles() that 
+          /* when Promise resolved and addFiles() is done
+          removes class added in addFiles() that 
           prevents user to click any <li> before it's fully executed */
           let rightPaneContent = document.querySelector(".right-pane__content") as HTMLDivElement;
           rightPaneContent.classList.remove("noTouching");
@@ -960,22 +721,30 @@ export const App = () => {
   /* -------------------------------------------------------- */
   async function inputAdd(event: ChangeEvent) {
     let songsDOM = document.querySelectorAll(".song"); // gets every <li class="song">
+    let current = event.currentTarget as HTMLInputElement;
+    let audioFiles = current.files as FileList;
 
     /* if there's no songs in DOM - will execute as if user clicked on [Open files...]
        otherwise executes addFiles() and waits for it to be done */
     if (!songsDOM.length) {
       inputOpen(event);
     } else {
-      await addFiles(event)
+      await addFiles(audioFiles)
         .then((isDone) => {
           if (isDone) {
-            playlist = [];
+            playlist = []; // reset playlist because all elements from songs[] will be copied
 
             /* adds new <li> elements from songs[] 
             and puts them in playlist[] - simply copy */
             songs.forEach(function (song) {
               playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
             });
+
+            /* re-shuffle playlist if isShuffled was enabled */
+            if (isShuffledRef.current) {
+              setIsShuffled(false);
+              setIsShuffled(true);
+            }
           }
         })
         .catch((error) => {
@@ -1389,6 +1158,73 @@ export const App = () => {
     }
   }
 
+  /* ----------------------------------------- */
+  /* --------| handles files on drop |-------- */
+  /* ----------------------------------------- */
+  async function handleDrop(event: DragEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    let current = event.currentTarget as HTMLSpanElement;
+    let DT = event.dataTransfer as DataTransfer;
+    let files = DT.files as FileList;
+
+    current.classList.remove("highlight");
+
+    await addFiles(files).then((isDone) => {
+      if (isDone) {
+        playlist = []; // reset playlist because all <li> elements from songs[] will be copied
+
+        /* adds new <li> elements from songs[] 
+        and puts them in playlist[] - simply copy */
+        songs.forEach(function (song) {
+          playlist = playlist.concat(...(song.liElements as Array<HTMLLIElement>));
+        });
+
+        /* re-shuffle playlist if isShuffled was enabled */
+        if (isShuffledRef.current) {
+          setIsShuffled(false);
+          setIsShuffled(true);
+        }
+      }
+    });
+  }
+
+  /* ----------------------------------------------------------- */
+  /* --------| handles visual on dragging over the box |-------- */
+  /* ----------------------------------------------------------- */
+  function handleDragOver(event: DragEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    let DT = event.dataTransfer as DataTransfer;
+    DT.dropEffect = "copy"; // Copy "icon" instead of Move
+
+    let current = event.currentTarget as HTMLSpanElement;
+    current.classList.add("highlight");
+  }
+
+  /* ---------------------------------------------------- */
+  /* --------| handles visual on leaving the box|-------- */
+  /* ---------------------------------------------------- */
+  function handleDragLeave(event: DragEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    let current = event.currentTarget as HTMLSpanElement;
+    current.classList.remove("highlight");
+  }
+
+  /* Prevents all drag events on App */
+  ["drop", "dragover", "dragenter", "dragleave"].forEach((eventName) => {
+    document.addEventListener(eventName, preventsDefaults, false);
+
+    function preventsDefaults(e: Event) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
   return (
     <div className="app">
       <Navbar handleClick={handleIndex} activeIndex={activeIndex} />
@@ -1414,7 +1250,13 @@ export const App = () => {
         ref={addInput_ref}
       />
 
-      <LeftPane index={activeIndex} handleInputs={handleInputsClick} />
+      <LeftPane
+        index={activeIndex}
+        handleInputs={handleInputsClick}
+        handleDrop={handleDrop}
+        handleDragOver={handleDragOver}
+        handleDragLeave={handleDragLeave}
+      />
       <RightPane hideUnknownUl={displayHideList} />
 
       <Playbar

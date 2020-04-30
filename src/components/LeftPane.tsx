@@ -5,6 +5,9 @@ interface Content {
 }
 
 interface Props {
+  handleDrop: Function;
+  handleDragOver: Function;
+  handleDragLeave: Function;
   handleInputs: Function;
   index: number;
 }
@@ -14,7 +17,7 @@ const API_KEY = "a785bdcxq0qLhDRbaymzbBBm3qFQkQ0IZZJyrLCZ5ywg2ZyswhL0fYpp";
 let API_LYRICS = "";
 
 const LeftPane = (props: Props) => {
-  const { index, handleInputs } = props;
+  const { index, handleInputs, handleDrop, handleDragOver, handleDragLeave } = props;
   const [isChecked, setIsChecked] = React.useState(false);
 
   /* --------------------------------------------------------- */
@@ -32,7 +35,7 @@ const LeftPane = (props: Props) => {
       let songTitle = songTitleEl.textContent as string; // song title from HTML
 
       /* URL encode and trim string (%20 = spaces etc.) */
-      artist = encodeURIComponent(artist.trim()); 
+      artist = encodeURIComponent(artist.trim());
       songTitle = encodeURIComponent(songTitle.trim());
 
       /* Happi API fetch - search query -> API query + artist + song title */
@@ -53,7 +56,7 @@ const LeftPane = (props: Props) => {
                 .then((response) => response.json())
                 .then((data) => {
                   if (data.success) {
-                    let lyrics = data.result.lyrics; // finally gets the lyrics 
+                    let lyrics = data.result.lyrics; // finally gets the lyrics
 
                     let lyricsText = document.getElementsByClassName("lyrics__text")[0] as HTMLDivElement; // gets HTML element to display lyrics
                     let lyricsBtn = document.getElementsByClassName("lyrics__button")[0] as HTMLDivElement; // gets button
@@ -91,9 +94,21 @@ const LeftPane = (props: Props) => {
           >
             {content.id === "file" && (
               <div className="file__content">
-                <span className="drag-files">
+                <span
+                  className="drag-files"
+                  onDrop={(e) => {
+                    handleDrop(e);
+                    e.preventDefault();
+                  }}
+                  onDragOver={(e) => {
+                    handleDragOver(e);
+                  }}
+                  onDragLeave={(e) => {
+                    handleDragLeave(e);
+                  }}
+                >
                   <i className="material-icons size">save_alt</i>
-                  <span>Drag .mp3 files</span>
+                  <span>Drop .mp3 files</span>
                 </span>
 
                 <div
