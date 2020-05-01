@@ -426,7 +426,7 @@ export const App = () => {
         /* checks if file is actually an audio file */
         // if (!(fileType === "audio/mp3" || fileType === "audio/mpeg")) {
         if (!(fileType === "audio/mp3" || fileType === "audio/mpeg") && !(extension === ".mp3")) {
-          alert("Wrong file format");
+          alert("Wrong or unsupported file format");
         } else {
           /* creates default elements that will go inside <li> element */
           const durationEl = document.createElement("span");
