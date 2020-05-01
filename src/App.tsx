@@ -417,11 +417,15 @@ export const App = () => {
     } else {
       /* for each audio file */
       for (let i = 0; i < audioFiles.length; i++) {
-        let fileType = audioFiles[i].type; // gets type from each file
-        let file = audioFiles[i];
+        let file = audioFiles[i]; // current iteration file
+        let fileType = file.type; // gets type from each file;
+
+        let indexOfLastDot = file.name.lastIndexOf("."); // last dot to get the extension
+        let extension = file.name.substring(indexOfLastDot).toLowerCase(); // gets only .extension and converts it to lowercase
 
         /* checks if file is actually an audio file */
-        if (!(fileType === "audio/mpeg" || fileType === "audio/mp3")) {
+        // if (!(fileType === "audio/mp3" || fileType === "audio/mpeg")) {
+        if (!(fileType === "audio/mp3" || fileType === "audio/mpeg") && !(extension === ".mp3")) {
           alert("Wrong file format");
         } else {
           /* creates default elements that will go inside <li> element */
